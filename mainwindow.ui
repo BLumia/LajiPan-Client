@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>765</width>
-    <height>443</height>
+    <height>462</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -15,6 +15,9 @@
     <horstretch>0</horstretch>
     <verstretch>0</verstretch>
    </sizepolicy>
+  </property>
+  <property name="acceptDrops">
+   <bool>false</bool>
   </property>
   <property name="windowTitle">
    <string>Laji Pan</string>
@@ -41,9 +44,21 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QListWidget" name="listWidget">
+         <widget class="FileListWidget" name="listWidget">
           <property name="contextMenuPolicy">
            <enum>Qt::CustomContextMenu</enum>
+          </property>
+          <property name="acceptDrops">
+           <bool>true</bool>
+          </property>
+          <property name="dragEnabled">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropOverwriteMode">
+           <bool>false</bool>
+          </property>
+          <property name="dragDropMode">
+           <enum>QAbstractItemView::NoDragDrop</enum>
           </property>
           <property name="iconSize">
            <size>
@@ -67,6 +82,9 @@
            <enum>QListView::IconMode</enum>
           </property>
           <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="sortingEnabled">
            <bool>true</bool>
           </property>
          </widget>
@@ -162,6 +180,193 @@
           <property name="horizontalSpacing">
            <number>6</number>
           </property>
+          <item row="8" column="0" colspan="2">
+           <widget class="QLineEdit" name="dbgChunkIDEdit">
+            <property name="statusTip">
+             <string>Chunk ID (Chunk Indexing inside File Srv)</string>
+            </property>
+            <property name="placeholderText">
+             <string>Chunk ID (chunk indexing inside File Server)</string>
+            </property>
+            <property name="clearButtonEnabled">
+             <bool>false</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="2">
+           <widget class="QPushButton" name="dbgUploadChunkBtn">
+            <property name="toolTip">
+             <string>CFuc</string>
+            </property>
+            <property name="text">
+             <string>Upload Chunk</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="0">
+           <widget class="QLineEdit" name="dbgFileSrvAddrEdit">
+            <property name="statusTip">
+             <string>File Server Address</string>
+            </property>
+            <property name="placeholderText">
+             <string>File Srv Address</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="2">
+           <widget class="QPushButton" name="dbgFileSrvPingBtn">
+            <property name="text">
+             <string>Ping!</string>
+            </property>
+           </widget>
+          </item>
+          <item row="7" column="0" colspan="2">
+           <widget class="QLineEdit" name="dbgChunkPartIDEdit">
+            <property name="statusTip">
+             <string>Chunk Part ID</string>
+            </property>
+            <property name="placeholderText">
+             <string>Chunk Part ID</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLineEdit" name="dbgFileHashEdit">
+            <property name="statusTip">
+             <string>MD5 hash</string>
+            </property>
+            <property name="inputMask">
+             <string/>
+            </property>
+            <property name="placeholderText">
+             <string>MD5 Hash</string>
+            </property>
+           </widget>
+          </item>
+          <item row="6" column="1">
+           <widget class="QLineEdit" name="dbgFileSrvPortEdit">
+            <property name="statusTip">
+             <string>File Server Port</string>
+            </property>
+            <property name="placeholderText">
+             <string>Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="dbgFf16bEdit">
+            <property name="statusTip">
+             <string>File First 16 Bytes in HEX</string>
+            </property>
+            <property name="placeholderText">
+             <string>File First 16 byte in HEX</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QPushButton" name="dbgPingBtn">
+            <property name="toolTip">
+             <string>Ping!</string>
+            </property>
+            <property name="statusTip">
+             <string>Ping!</string>
+            </property>
+            <property name="text">
+             <string>Ping!</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QPushButton" name="dbgKeepAliveBtn">
+            <property name="toolTip">
+             <string>FIka</string>
+            </property>
+            <property name="statusTip">
+             <string>File Server -&gt; Info Server Keep-Alive</string>
+            </property>
+            <property name="text">
+             <string>Keep Alive</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="dbgSrvPortEdit">
+            <property name="statusTip">
+             <string>Server Port</string>
+            </property>
+            <property name="placeholderText">
+             <string>Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="2">
+           <widget class="QPushButton" name="dbgReportUploadBtn">
+            <property name="toolTip">
+             <string>FIru</string>
+            </property>
+            <property name="statusTip">
+             <string>File Server -&gt; Info Server Report Uploaded chunk</string>
+            </property>
+            <property name="text">
+             <string>Report Upload</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLineEdit" name="dbgSrvAddrEdit">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="baseSize">
+             <size>
+              <width>0</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="statusTip">
+             <string>Server  Address (IP)</string>
+            </property>
+            <property name="placeholderText">
+             <string>Srv Address</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="1">
+           <widget class="QProgressBar" name="progressBar">
+            <property name="value">
+             <number>61</number>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="0">
+           <widget class="QLineEdit" name="dbgFileSrvQueryPortEdit">
+            <property name="statusTip">
+             <string>File Srv Query Port</string>
+            </property>
+            <property name="placeholderText">
+             <string>File Srv Query Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="9" column="2">
+           <widget class="QPushButton" name="dbgDownloadChunkBtn">
+            <property name="statusTip">
+             <string>Download chunk</string>
+            </property>
+            <property name="text">
+             <string>Download Chunk</string>
+            </property>
+           </widget>
+          </item>
           <item row="3" column="2">
            <widget class="QPushButton" name="dbgHashQueryBtn">
             <property name="toolTip">
@@ -219,7 +424,7 @@
             </property>
            </widget>
           </item>
-          <item row="10" column="1">
+          <item row="11" column="1">
            <spacer name="verticalSpacer">
             <property name="orientation">
              <enum>Qt::Vertical</enum>
@@ -239,190 +444,23 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0" colspan="2">
-           <widget class="QLineEdit" name="dbgChunkIDEdit">
-            <property name="statusTip">
-             <string>Chunk ID (Chunk Indexing inside File Srv)</string>
-            </property>
+          <item row="10" column="0" colspan="2">
+           <widget class="QLineEdit" name="dbgFilePathEdit">
             <property name="placeholderText">
-             <string>Chunk ID (chunk indexing inside File Server)</string>
-            </property>
-            <property name="clearButtonEnabled">
-             <bool>false</bool>
+             <string>Query File Path (Actually is filename)</string>
             </property>
            </widget>
           </item>
-          <item row="7" column="2">
-           <widget class="QPushButton" name="dbgUploadChunkBtn">
+          <item row="10" column="2">
+           <widget class="QPushButton" name="dbgFileQueryBtn">
             <property name="toolTip">
-             <string>CFuc</string>
+             <string>CHfq</string>
+            </property>
+            <property name="statusTip">
+             <string>Client -&gt; Info Server File Query</string>
             </property>
             <property name="text">
-             <string>Upload Chunk</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="0">
-           <widget class="QLineEdit" name="dbgFileSrvAddrEdit">
-            <property name="statusTip">
-             <string>File Server Address</string>
-            </property>
-            <property name="placeholderText">
-             <string>File Srv Address</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="2">
-           <widget class="QPushButton" name="dbgFileSrvPingBtn">
-            <property name="text">
-             <string>Ping!</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLineEdit" name="dbgFileHashEdit">
-            <property name="statusTip">
-             <string>MD5 hash</string>
-            </property>
-            <property name="inputMask">
-             <string/>
-            </property>
-            <property name="placeholderText">
-             <string>MD5 Hash</string>
-            </property>
-           </widget>
-          </item>
-          <item row="6" column="1">
-           <widget class="QLineEdit" name="dbgFileSrvPortEdit">
-            <property name="statusTip">
-             <string>File Server Port</string>
-            </property>
-            <property name="placeholderText">
-             <string>Port</string>
-            </property>
-           </widget>
-          </item>
-          <item row="7" column="0" colspan="2">
-           <widget class="QLineEdit" name="dbgChunkPartIDEdit">
-            <property name="statusTip">
-             <string>Chunk Part ID</string>
-            </property>
-            <property name="placeholderText">
-             <string>Chunk Part ID</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2">
-           <widget class="QPushButton" name="dbgPingBtn">
-            <property name="toolTip">
-             <string>Ping!</string>
-            </property>
-            <property name="statusTip">
-             <string>Ping!</string>
-            </property>
-            <property name="text">
-             <string>Ping!</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="dbgFf16bEdit">
-            <property name="statusTip">
-             <string>File First 16 Bytes in HEX</string>
-            </property>
-            <property name="placeholderText">
-             <string>File First 16 byte in HEX</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QPushButton" name="dbgKeepAliveBtn">
-            <property name="toolTip">
-             <string>FIka</string>
-            </property>
-            <property name="statusTip">
-             <string>File Server -&gt; Info Server Keep-Alive</string>
-            </property>
-            <property name="text">
-             <string>Keep Alive</string>
-            </property>
-           </widget>
-          </item>
-          <item row="8" column="2">
-           <widget class="QPushButton" name="dbgReportUploadBtn">
-            <property name="toolTip">
-             <string>FIru</string>
-            </property>
-            <property name="statusTip">
-             <string>File Server -&gt; Info Server Report Uploaded chunk</string>
-            </property>
-            <property name="text">
-             <string>Report Upload</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLineEdit" name="dbgSrvAddrEdit">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="minimumSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="baseSize">
-             <size>
-              <width>0</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="statusTip">
-             <string>Server  Address (IP)</string>
-            </property>
-            <property name="placeholderText">
-             <string>Srv Address</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="dbgSrvPortEdit">
-            <property name="statusTip">
-             <string>Server Port</string>
-            </property>
-            <property name="placeholderText">
-             <string>Port</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="2">
-           <widget class="QPushButton" name="dbgDownloadChunkBtn">
-            <property name="statusTip">
-             <string>Download chunk</string>
-            </property>
-            <property name="text">
-             <string>Download Chunk</string>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="1">
-           <widget class="QProgressBar" name="progressBar">
-            <property name="value">
-             <number>61</number>
-            </property>
-           </widget>
-          </item>
-          <item row="9" column="0">
-           <widget class="QLineEdit" name="dbgFileSrvQueryPortEdit">
-            <property name="statusTip">
-             <string>File Srv Query Port</string>
-            </property>
-            <property name="placeholderText">
-             <string>File Srv Query Port</string>
+             <string>File Query</string>
             </property>
            </widget>
           </item>
@@ -458,6 +496,13 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>FileListWidget</class>
+   <extends>QListWidget</extends>
+   <header>filelistwidget.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <QListWidgetItem>
 #include <QNetworkAccessManager>
+#include <QHostAddress>
 
 namespace Ui {
 class MainWindow;
@@ -18,7 +19,11 @@ class MainWindow : public QMainWindow
 
 public:
     QString updownSrvAddrPort;
+    QHostAddress updownSrvAddr;
+    int updownSrvPort;
     QString querySrvAddrPort;
+    QHostAddress querySrvAddr;
+    int querySrvPort;
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -46,6 +51,8 @@ private slots:
     // custom solts:
     void requestReceived(QNetworkReply* reply);
     void partDownloaded();
+
+    void on_dbgFileQueryBtn_clicked();
 
 private:
     Ui::MainWindow *ui;

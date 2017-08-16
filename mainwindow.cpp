@@ -1,10 +1,12 @@
 #include "mainwindow.h"
+#include "requestsender.h"
+#include "responsereceiver.h"
+#include "lajiutils.h"
 #include "ui_mainwindow.h"
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QMessageBox>
 #include <QFileDialog>
-#include <QCryptographicHash>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QScriptEngine>
@@ -15,6 +17,7 @@
 #include <QFileIconProvider>
 #include <QDesktopServices>
 #include <QMenu>
+#include <vector>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -24,6 +27,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     updownSrvAddrPort = "127.0.0.1:8061";
     querySrvAddrPort = "127.0.0.1:8080";
+    querySrvAddr.setAddress("127.0.0.1");
+    updownSrvAddr.setAddress("127.0.0.1");
+    querySrvPort = 8080;
+    updownSrvPort = 8061;
+
+    ui->listWidget->setAcceptDrops(true);
 
     if (!QDir("Cache").exists()) QDir().mkdir("Cache");
     if (!QDir("Downloaded").exists()) QDir().mkdir("Downloaded");
@@ -113,15 +122,11 @@ void MainWindow::on_dbgLoadFileBtn_clicked()
     QByteArray ff16bByteArray(16, 0);
 
     fileSize = fileinfo.size();
-    QCryptographicHash crypto(QCryptographicHash::Md5);
     file.open(QFile::ReadOnly);
-
     ff16bByteArray = file.peek(16);
+    file.close();
 
-    while(!file.atEnd()){
-      crypto.addData(file.read(8192));
-    }
-    QByteArray hash = crypto.result();
+    QByteArray hash = LajiUtils::calcMD5(path);
     ui->dbgFf16bEdit->setText(ff16bByteArray.toHex());
     ui->dbgFileHashEdit->setText(hash.toHex());
     ui->dbgFileNameEdit->setText(fileinfo.fileName());
@@ -152,7 +157,6 @@ void MainWindow::on_dbgHashQueryBtn_clicked()
         ui->logTextBrowser->append(socket.errorString());
         return;
     }
-    QDataStream os( &socket );
 
     // req: [*CIhq*][hash(32bytes)][file first 16 bytes(hex, so 32bytes)][filesize(int64_t)][256byte filename]
 
@@ -163,40 +167,20 @@ void MainWindow::on_dbgHashQueryBtn_clicked()
     QString fileNameStr = ui->dbgFileNameEdit->text();
     fileNameArray.insert(0, fileNameStr.simplified());
 
-    socket.write("CIhq", 4);
-    os.writeRawData(hashStr.toStdString().c_str(), 32);
-    os.writeRawData(ff16bStr.toStdString().c_str(), 32);
-    //os.writeRawData((char*)&fileSize, sizeof(int64_t));
-    os << fileSize;
-    os.writeRawData(fileNameArray.toStdString().c_str(), 256);
-    //os.writeRawData(fileNameStr.toStdString().c_str(), 256);
-    //os << fileNameArray;
-    socket.waitForBytesWritten();
-    socket.waitForReadyRead();
+    RequestSender::sendCIhq(socket, hashStr, ff16bStr, fileSize, fileNameArray);
+    ICucModel receivedData = ResponseReceiver::recvICuc(socket);
 
-    char recvHeader[5], recvStatus[4];
-    int32_t recvSize;
-    os.readRawData(recvHeader, 4);
-    recvHeader[4] = '\0';
-    os >> recvSize;
-    os.readRawData(recvStatus, 3);
-    recvStatus[3] = '\0';
-    if (recvSize == 3) {
-        ui->logTextBrowser->append("Response: " + QString(recvHeader) +
-                                   " Recv Size: " + QString::number(recvSize) +
-                                   " Response State: " + QString(recvStatus));
+    if (receivedData.status.compare("404") != 0) {
+        ui->logTextBrowser->append("Response: " + receivedData.header +
+                                   " Response State: " + receivedData.status);
     } else {
-        int32_t chunkCnt, addrCnt;
-        uint32_t addr, port;
-        os >> chunkCnt >> addrCnt;
-        ui->logTextBrowser->append("Response: " + QString(recvHeader) + " Recv Size: " +
-                                   QString::number(recvSize) + " Chunk Cnt: " + QString::number(chunkCnt)
+        int addrCnt = receivedData.addrPortList.size();
+        ui->logTextBrowser->append("Response: " + receivedData.header +
+                                   " Chunk Cnt: " + QString::number(receivedData.chunkCnt)
                                    + " Addr Cnt: " + QString::number(addrCnt));
-        for (int i = 1; i <= addrCnt; i++) {
-            os >> addr >> port;
-            QHostAddress qaddr(addr);
-            ui->logTextBrowser->append("\tChunk Addr(in uint32_t): " + qaddr.toString() +
-                                        ":" + QString::number(port));
+        for (QAddressPort& oneAddrPort : receivedData.addrPortList) {
+            ui->logTextBrowser->append("\tChunk Addr(in uint32_t): " + oneAddrPort.address.toString() +
+                                        ":" + QString::number(oneAddrPort.port));
         }
     }
 
@@ -269,7 +253,11 @@ void MainWindow::on_listWidget_customContextMenuRequested(const QPoint &pos)
 void MainWindow::on_settingApplyBtn_clicked()
 {
     this->querySrvAddrPort = ui->querySrvAddrEdit->text() + ui->querySrvPortEdit->text();
+    this->querySrvAddr.setAddress(ui->querySrvAddrEdit->text());
+    this->querySrvPort = ui->querySrvPortEdit->text().toInt();
     this->updownSrvAddrPort = ui->srvAddrEdit->text() + ui->srvPortEdit->text();
+    this->updownSrvAddr.setAddress(ui->srvAddrEdit->text());
+    this->updownSrvPort = ui->srvPortEdit->text().toInt();
 }
 
 void MainWindow::requestReceived(QNetworkReply *reply)
@@ -309,13 +297,17 @@ void MainWindow::partDownloaded()
 
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
 {
-    Q_UNUSED(item);
     QString fileName = item->text();
     QMessageBox::StandardButton btnClicked = QMessageBox::information(nullptr, "Info",
                              "Would you like to download: " + fileName + " ?",
                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
     if (btnClicked == QMessageBox::Yes) {
         qDebug() << "Yes Yes Yes";
+        QTcpSocket socket;
+        socket.connectToHost(updownSrvAddr, updownSrvPort);
+        RequestSender::sendCIfq(socket, fileName);
+        std::vector<int> chunkLocationArr( ResponseReceiver::recvICdc(socket) );
+        qDebug() << chunkLocationArr;
     } else {
         qDebug() << "No No No";
     }
@@ -397,16 +389,11 @@ void MainWindow::on_dbgUploadChunkBtn_clicked()
         return;
     }
     // req: [*CFuc*][chunk len(int64)][file hash][file part id(for client)][chunk] (token?)
-    QDataStream os( &socket );
     QString hashStr = ui->dbgFileHashEdit->text();
     int32_t chunkPartID =  ui->dbgChunkPartIDEdit->text().toInt();
-    os.writeRawData("CFuc", 4);
-    os << fileSize;
-    os.writeRawData(hashStr.toStdString().c_str(), 32);
-    os << chunkPartID;
-    os.writeRawData(blob.toStdString().c_str(), fileSize);
 
-    socket.waitForBytesWritten();
+    RequestSender::sendCFuc(socket, chunkPartID, hashStr, fileSize, blob);
+
     socket.waitForReadyRead();
 
     ui->logTextBrowser->append("Response: " + socket.readAll());
@@ -430,4 +417,27 @@ void MainWindow::on_dbgDownloadChunkBtn_clicked()
     downloaderHandler = new FileDownloader(chunkUrl, this);
 
     connect(downloaderHandler, SIGNAL (downloaded()), this, SLOT (partDownloaded()));
+}
+
+void MainWindow::on_dbgFileQueryBtn_clicked()
+{
+    if (ui->dbgSrvAddrEdit->text().isEmpty() ||
+            ui->dbgSrvPortEdit->text().isEmpty() ||
+            ui->dbgFilePathEdit->text().isEmpty()) {
+        QMessageBox::information(nullptr, "Info", "Both Srv IP, QueryPort and Chunk ID are required!");
+        return;
+    }
+
+    QTcpSocket socket;
+    QHostAddress addr(ui->dbgSrvAddrEdit->text());
+    int port = ui->dbgSrvPortEdit->text().toInt();
+    socket.connectToHost(addr, port);
+
+    RequestSender::sendCIfq(socket, ui->dbgFilePathEdit->text());
+    std::vector<int> chunkLocationArr( ResponseReceiver::recvICdc(socket) );
+
+    qDebug() << chunkLocationArr;
+
+    ui->logTextBrowser->append("Response: [ICdc] ChunkCnt: " + QString::number(chunkLocationArr.size()));
+    socket.close();
 }

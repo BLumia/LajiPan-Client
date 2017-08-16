@@ -26,11 +26,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    filedownloader.cpp
+    filedownloader.cpp \
+    requestsender.cpp \
+    responsereceiver.cpp \
+    filelistwidget.cpp \
+    lajiutils.cpp \
+    icucmodel.cpp
 
 HEADERS += \
         mainwindow.h \
-    filedownloader.h
+    filedownloader.h \
+    requestsender.h \
+    responsereceiver.h \
+    filelistwidget.h \
+    lajiutils.h \
+    icucmodel.h
 
 FORMS += \
         mainwindow.ui
