@@ -51,7 +51,7 @@ private slots:
     // custom solts:
     void requestReceived(QNetworkReply* reply);
     void partDownloaded();
-
+    void on_listWidget_dropEventTriggered(QList<QUrl> urls);
     void on_dbgFileQueryBtn_clicked();
 
 private:

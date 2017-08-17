@@ -36,6 +36,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     if (!QDir("Cache").exists()) QDir().mkdir("Cache");
     if (!QDir("Downloaded").exists()) QDir().mkdir("Downloaded");
+
+    connect(ui->listWidget,SIGNAL(dropEventTriggered(QList<QUrl>)),
+            this,SLOT(on_listWidget_dropEventTriggered(QList<QUrl>)), Qt::UniqueConnection);
 }
 
 MainWindow::~MainWindow()
@@ -117,17 +120,11 @@ void MainWindow::on_dbgLoadFileBtn_clicked()
     if (path.isNull()) return;
 
     QFileInfo fileinfo(path);
-    QFile file(path);
-    int64_t fileSize;
-    QByteArray ff16bByteArray(16, 0);
-
-    fileSize = fileinfo.size();
-    file.open(QFile::ReadOnly);
-    ff16bByteArray = file.peek(16);
-    file.close();
-
+    int64_t fileSize = fileinfo.size();
     QByteArray hash = LajiUtils::calcMD5(path);
-    ui->dbgFf16bEdit->setText(ff16bByteArray.toHex());
+    QByteArray ff16b = LajiUtils::calcFf16b(path);
+
+    ui->dbgFf16bEdit->setText(ff16b.toHex());
     ui->dbgFileHashEdit->setText(hash.toHex());
     ui->dbgFileNameEdit->setText(fileinfo.fileName());
     ui->dbgFileNameEdit->setStatusTip(path);
@@ -157,8 +154,6 @@ void MainWindow::on_dbgHashQueryBtn_clicked()
         ui->logTextBrowser->append(socket.errorString());
         return;
     }
-
-    // req: [*CIhq*][hash(32bytes)][file first 16 bytes(hex, so 32bytes)][filesize(int64_t)][256byte filename]
 
     QString hashStr = ui->dbgFileHashEdit->text();
     QString ff16bStr = ui->dbgFf16bEdit->text();
@@ -237,7 +232,7 @@ void MainWindow::refreshFileList()
 {
     ui->listWidget->clear();
     QNetworkAccessManager *manager = new QNetworkAccessManager(this);
-        connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(requestReceived(QNetworkReply*)));
+    connect(manager,SIGNAL(finished(QNetworkReply*)),this,SLOT(requestReceived(QNetworkReply*)));
     manager->get(QNetworkRequest("http://" + querySrvAddrPort + "/file"));
 }
 
@@ -295,21 +290,85 @@ void MainWindow::partDownloaded()
     QDesktopServices::openUrl( fileinfo.absolutePath() );
 }
 
+void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
+{
+    QTcpSocket socket;
+    QString filePath = urls.first().toLocalFile();
+
+    socket.connectToHost(updownSrvAddr, updownSrvPort);
+    if (!socket.waitForConnected()) {
+        //emit error(socket.error(), socket.errorString());
+        QMessageBox::information(nullptr, "Connection failed!",
+                                 "Refer to setting tab and update the informations.\nDetail: "
+                                 + socket.errorString());
+        return;
+    }
+
+    qDebug() << filePath;
+    //qDebug() << urls;
+
+    QByteArray md5bin = LajiUtils::calcMD5(filePath);
+    QString md5hexStr = md5bin.toHex();
+
+    RequestSender::sendCIhq(socket, filePath);
+    ICucModel receivedData = ResponseReceiver::recvICuc(socket);
+
+    qDebug() << receivedData.addrPortList;
+
+    QFile file(filePath);
+    file.open(QFile::ReadOnly);
+
+    int chunkPartID = 1;
+    while(!file.atEnd()){
+        QByteArray blob = file.read(CHUNKSIZE_B);
+        // TODO: split file and upload to avaliable FS.
+        // we just do simple upload for now.
+        socket.close();
+        socket.connectToHost(QHostAddress("127.0.0.1"), 7061); // FIXME: hard code addr!
+        if (!socket.waitForConnected()) {
+            //emit error(socket.error(), socket.errorString());
+            QMessageBox::information(nullptr, "Connection failed while uploading!",
+                                     "Refer to setting tab and update the informations.\nDetail: "
+                                     + socket.errorString());
+            return;
+        }
+        RequestSender::sendCFuc(socket, chunkPartID, md5hexStr, blob.size(), blob);
+        socket.waitForReadyRead();
+        ui->logTextBrowser->append("Drop file upload: Chunk #" + QString::number(chunkPartID)
+                                   + " Status: " +  socket.readAll());
+        chunkPartID++;
+    }
+
+    // Done.
+    QMessageBox::information(nullptr, "Info", "Upload done! Will refresh the list for ya.");
+    this->refreshFileList();
+
+}
+
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
 {
     QString fileName = item->text();
-    QMessageBox::StandardButton btnClicked = QMessageBox::information(nullptr, "Info",
-                             "Would you like to download: " + fileName + " ?",
-                             QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
-    if (btnClicked == QMessageBox::Yes) {
-        qDebug() << "Yes Yes Yes";
-        QTcpSocket socket;
-        socket.connectToHost(updownSrvAddr, updownSrvPort);
-        RequestSender::sendCIfq(socket, fileName);
-        std::vector<int> chunkLocationArr( ResponseReceiver::recvICdc(socket) );
-        qDebug() << chunkLocationArr;
+
+    QTcpSocket socket;
+    socket.connectToHost(updownSrvAddr, updownSrvPort);
+    RequestSender::sendCIfq(socket, fileName);
+    std::vector<int> chunkLocationArr( ResponseReceiver::recvICdc(socket) );
+
+    if (chunkLocationArr.size() == 0) {
+        QMessageBox::information(nullptr, "Warning",
+                                 "Seems `" + fileName + "` is not ready for download.");
     } else {
-        qDebug() << "No No No";
+        QMessageBox::StandardButton btnClicked = QMessageBox::information(nullptr, "Info",
+                                 "Would you like to download: " + fileName + " ?",
+                                 QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (btnClicked == QMessageBox::Yes) {
+            qDebug() << "Yes Yes Yes";
+            qDebug() << chunkLocationArr;
+
+
+        } else {
+            qDebug() << "No No No";
+        }
     }
 }
 

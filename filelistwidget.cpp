@@ -1,4 +1,6 @@
 #include "filelistwidget.h"
+#include "lajiutils.h"
+#include "requestsender.h"
 
 #include <QDropEvent>
 #include <QMimeData>
@@ -17,10 +19,9 @@ void FileListWidget::dropEvent(QDropEvent *event)
     QList<QUrl> urls = event->mimeData()->urls();
     if (urls.isEmpty()) return;
 
-    QString fileName = urls.first().toLocalFile();
-    qDebug() << fileName;
-    qDebug() << urls;
+    // TODO: check is file, not a folder.
 
+    emit dropEventTriggered(urls);
 }
 
 void FileListWidget::dragEnterEvent(QDragEnterEvent *event)

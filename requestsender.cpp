@@ -1,6 +1,8 @@
 #include "requestsender.h"
+#include "lajiutils.h"
 
 #include <QDataStream>
+#include <QFileInfo>
 
 RequestSender::RequestSender()
 {
@@ -23,9 +25,21 @@ bool RequestSender::sendCIfq(QTcpSocket &socket, QString fileName)
     return true;
 }
 
+bool RequestSender::sendCIhq(QTcpSocket &socket, QString filepath)
+{
+    QFileInfo fileinfo(filepath);
+    QByteArray hash = LajiUtils::calcMD5(filepath);
+    QByteArray ff16b = LajiUtils::calcFf16b(filepath);
+    QByteArray fileNameArray(256, '\0');
+    fileNameArray.insert(0, fileinfo.fileName().simplified());
+
+    return sendCIhq(socket, hash.toHex(), ff16b.toHex(), fileinfo.size(), fileNameArray);
+}
+
 bool RequestSender::sendCIhq(QTcpSocket &socket, QString hashStr, QString ff16bStr,
                              qint64 fileSize, QByteArray fileNameArray)
 {
+    // req: [*CIhq*][hash(32bytes)][ff16b(hex, so 32bytes)][filesize(int64_t)][256byte filename]
     QDataStream out(&socket);
 
     socket.write("CIhq", 4);
@@ -53,4 +67,6 @@ bool RequestSender::sendCFuc(QTcpSocket &socket, int32_t chunkPartID, QString ha
     out.writeRawData(blob.toStdString().c_str(), chunkSize);
 
     socket.waitForBytesWritten();
+
+    return true;
 }

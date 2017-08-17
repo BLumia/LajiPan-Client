@@ -59,5 +59,6 @@ ICucModel ResponseReceiver::recvICuc(QTcpSocket &socket)
 
             result.addrPortList.push_back(addrport);
         }
+        return result;
     }
 }

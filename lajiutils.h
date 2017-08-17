@@ -5,7 +5,13 @@
 #include <QHostAddress>
 #include <QString>
 
+#define CHUNKSIZE_MB    64
+#define CHUNKSIZE_B     67108864
+
 class QAddressPort {
+
+    friend QDebug operator <<(QDebug dbg, const QAddressPort &instanceObj);
+
 public:
     explicit QAddressPort();
     explicit QAddressPort(QHostAddress addr, int port);
@@ -19,6 +25,7 @@ class LajiUtils
 public:
     LajiUtils();
     static QByteArray calcMD5(QString filepath);
+    static QByteArray calcFf16b(QString filepath);
 };
 
 #endif // LAJIUTILS_H

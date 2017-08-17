@@ -21,6 +21,13 @@ QAddressPort::QAddressPort(QString addrStr, int port)
     this->port = port;
 }
 
+QDebug operator <<(QDebug dbg, const QAddressPort &instanceObj)
+{
+    dbg.nospace() << "QAddressPort( " << instanceObj.address.toString() << " , "
+                  << QString::number(instanceObj.port) << " )";
+    return dbg.maybeSpace();
+}
+
 LajiUtils::LajiUtils()
 {
 
@@ -28,7 +35,6 @@ LajiUtils::LajiUtils()
 
 QByteArray LajiUtils::calcMD5(QString filepath)
 {
-    QFileInfo fileinfo(filepath);
     QFile file(filepath);
     QCryptographicHash crypto(QCryptographicHash::Md5);
 
@@ -41,4 +47,16 @@ QByteArray LajiUtils::calcMD5(QString filepath)
     file.close();
 
     return crypto.result();
+}
+
+QByteArray LajiUtils::calcFf16b(QString filepath)
+{
+    QFile file(filepath);
+    QByteArray ff16bByteArray(16, 0);
+
+    file.open(QFile::ReadOnly);
+    ff16bByteArray = file.peek(16);
+    file.close();
+
+    return ff16bByteArray;
 }
