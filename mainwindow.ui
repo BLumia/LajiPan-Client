@@ -350,7 +350,7 @@
           <item row="9" column="0">
            <widget class="QLineEdit" name="dbgFileSrvQueryPortEdit">
             <property name="statusTip">
-             <string>File Srv Query Port</string>
+             <string>File Srv Query (HTTP) Listening Port</string>
             </property>
             <property name="placeholderText">
              <string>File Srv Query Port</string>
@@ -404,16 +404,6 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="QLineEdit" name="dbgFileSrvIDEdit">
-            <property name="statusTip">
-             <string>File Server ID</string>
-            </property>
-            <property name="placeholderText">
-             <string>File Srv ID</string>
-            </property>
-           </widget>
-          </item>
           <item row="5" column="0" colspan="2">
            <widget class="QLineEdit" name="lineEdit">
             <property name="readOnly">
@@ -461,6 +451,26 @@
             </property>
             <property name="text">
              <string>File Query</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLineEdit" name="dbgFileSrvIDEdit">
+            <property name="statusTip">
+             <string>File Server ID</string>
+            </property>
+            <property name="placeholderText">
+             <string>File Srv ID</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="dbgFileSrvUpdownPortEdit">
+            <property name="statusTip">
+             <string>File Server Updown (TCP) Listening Port</string>
+            </property>
+            <property name="placeholderText">
+             <string>File Srv Updown Port</string>
             </property>
            </widget>
           </item>

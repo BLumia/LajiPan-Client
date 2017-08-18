@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    uploadFormPtr = new UploadForm(0);
+
     updownSrvAddrPort = "127.0.0.1:8061";
     querySrvAddrPort = "127.0.0.1:8080";
     querySrvAddr.setAddress("127.0.0.1");
@@ -45,10 +47,14 @@ MainWindow::~MainWindow()
 {
     //delete nm;
     delete ui;
+    delete uploadFormPtr;
 }
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event) {
     Q_UNUSED(event);
+//    uploadFormPtr->show();
+//    uploadFormPtr->update();
+//    qDebug() << "triggered";
 /*
     QCursor cur=this->cursor();
     QMenu fileListViewCtxMenu;
@@ -61,8 +67,10 @@ void MainWindow::on_dbgKeepAliveBtn_clicked()
 {
     if (ui->dbgSrvAddrEdit->text().isEmpty() ||
             ui->dbgSrvPortEdit->text().isEmpty() ||
+            ui->dbgFileSrvUpdownPortEdit->text().isEmpty() ||
             ui->dbgFileSrvIDEdit->text().isEmpty()) {
-        QMessageBox::information(nullptr, "Info", "Both srv IP, Port and FileSrv ID are required!");
+        QMessageBox::information(nullptr, "Info", "Both srv IP, Port, FileSrv Updown Port"
+                                                  " and FileSrv ID are required!");
         return;
     }
     ui->logTextBrowser->append("Test Send [FIka] to " +
@@ -72,6 +80,7 @@ void MainWindow::on_dbgKeepAliveBtn_clicked()
     QHostAddress addr(ui->dbgSrvAddrEdit->text());
     int port = ui->dbgSrvPortEdit->text().toInt();
     int32_t fsId = ui->dbgFileSrvIDEdit->text().toInt();
+    int32_t fsPort = ui->dbgFileSrvUpdownPortEdit->text().toInt();
     socket.connectToHost(addr, port);
     // will block. should in another thread
     if (!socket.waitForConnected()) {
@@ -82,6 +91,7 @@ void MainWindow::on_dbgKeepAliveBtn_clicked()
     socket.write("FIka", 4);
     //socket.write((char*)&fsId, sizeof(int32_t));
     os << fsId;
+    os << fsPort;
     socket.waitForBytesWritten();
     ui->logTextBrowser->append("Sent a Keep-Alive!");
     socket.close();
@@ -190,6 +200,7 @@ void MainWindow::on_dbgFillValueBtn_clicked()
     ui->dbgFileSrvAddrEdit->setText("127.0.0.1");
     ui->dbgFileSrvPortEdit->setText("7061");
     ui->dbgFileSrvQueryPortEdit->setText("7080");
+    ui->dbgFileSrvUpdownPortEdit->setText("7061");
 }
 
 void MainWindow::on_dbgReportUploadBtn_clicked()
@@ -316,7 +327,15 @@ void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
     qDebug() << receivedData.addrPortList;
 
     QFile file(filePath);
+    qint64 uploadedSize = 0;
     file.open(QFile::ReadOnly);
+
+    // Do upload:
+    uploadFormPtr->updateUIText(filePath);
+    uploadFormPtr->updateUploadedSize(0);
+    uploadFormPtr->show();
+    uploadFormPtr->update();
+    QApplication::processEvents();
 
     int chunkPartID = 1;
     while(!file.atEnd()){
@@ -334,10 +353,16 @@ void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
         }
         RequestSender::sendCFuc(socket, chunkPartID, md5hexStr, blob.size(), blob);
         socket.waitForReadyRead();
+        uploadedSize += blob.size();
+        uploadFormPtr->updateUploadedSize(uploadedSize);
+        uploadFormPtr->updateUploadedSize(0);
         ui->logTextBrowser->append("Drop file upload: Chunk #" + QString::number(chunkPartID)
                                    + " Status: " +  socket.readAll());
         chunkPartID++;
+        QApplication::processEvents(); // FIXME: lazy work!
     }
+
+    uploadFormPtr->uploadDone();
 
     // Done.
     QMessageBox::information(nullptr, "Info", "Upload done! Will refresh the list for ya.");
@@ -365,6 +390,10 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
             qDebug() << "Yes Yes Yes";
             qDebug() << chunkLocationArr;
 
+            for(int& oneAddr : chunkLocationArr) {
+                int chunkFSID = oneAddr / 1000;
+                int chunkID = oneAddr % 1000;
+            }
 
         } else {
             qDebug() << "No No No";

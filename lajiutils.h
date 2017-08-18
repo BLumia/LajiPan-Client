@@ -26,6 +26,7 @@ public:
     LajiUtils();
     static QByteArray calcMD5(QString filepath);
     static QByteArray calcFf16b(QString filepath);
+    static QString humanFileSize(qint64 size);
 };
 
 #endif // LAJIUTILS_H

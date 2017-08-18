@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include "filedownloader.h"
+#include "uploadform.h"
 
 #include <QMainWindow>
 #include <QUrl>
@@ -57,6 +58,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     FileDownloader *downloaderHandler;
+    // Other dialog / windows
+    UploadForm *uploadFormPtr;
 };
 
 #endif // MAINWINDOW_H

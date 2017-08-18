@@ -60,3 +60,19 @@ QByteArray LajiUtils::calcFf16b(QString filepath)
 
     return ff16bByteArray;
 }
+
+QString LajiUtils::humanFileSize(qint64 size)
+{
+    double num = size;
+    QStringList list;
+    list << "KiB" << "MiB" << "GiB" << "TiB";
+
+    QStringListIterator i(list);
+    QString unit("bytes");
+
+    while(num >= 1024.0 && i.hasNext()) {
+        unit = i.next();
+        num /= 1024.0;
+    }
+    return QString().setNum(num,'f',2)+" "+unit;
+}

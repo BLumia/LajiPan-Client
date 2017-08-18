@@ -31,7 +31,8 @@ SOURCES += \
     responsereceiver.cpp \
     filelistwidget.cpp \
     lajiutils.cpp \
-    icucmodel.cpp
+    icucmodel.cpp \
+    uploadform.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -40,7 +41,9 @@ HEADERS += \
     responsereceiver.h \
     filelistwidget.h \
     lajiutils.h \
-    icucmodel.h
+    icucmodel.h \
+    uploadform.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    uploadform.ui
