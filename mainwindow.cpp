@@ -505,6 +505,8 @@ void MainWindow::on_dbgDownloadChunkBtn_clicked()
     downloaderHandler = new FileDownloader(chunkUrl, this);
 
     connect(downloaderHandler, SIGNAL (downloaded()), this, SLOT (partDownloaded()));
+    connect(downloaderHandler, SIGNAL (downloadProgress(qint64, qint64)),
+            this, SLOT (updateDbgDownloadProgress(qint64, qint64)));
 }
 
 void MainWindow::on_dbgFileQueryBtn_clicked()
@@ -528,4 +530,11 @@ void MainWindow::on_dbgFileQueryBtn_clicked()
 
     ui->logTextBrowser->append("Response: [ICdc] ChunkCnt: " + QString::number(chunkLocationArr.size()));
     socket.close();
+}
+
+void MainWindow::updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSize)
+{
+    if (downloadedSize < 0) qDebug() << "updateDbgDownloadProgress(): ???";
+    ui->dbgDlProgressBar->setMaximum(totalSize);
+    ui->dbgDlProgressBar->setValue(downloadedSize);
 }

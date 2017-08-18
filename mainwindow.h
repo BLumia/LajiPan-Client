@@ -54,6 +54,7 @@ private slots:
     void partDownloaded();
     void on_listWidget_dropEventTriggered(QList<QUrl> urls);
     void on_dbgFileQueryBtn_clicked();
+    void updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSize);
 
 private:
     Ui::MainWindow *ui;
