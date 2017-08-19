@@ -3,6 +3,7 @@
 
 #include "filedownloader.h"
 #include "uploadform.h"
+#include "downloadform.h"
 
 #include <QMainWindow>
 #include <QUrl>
@@ -40,7 +41,6 @@ private slots:
     void on_dbgReportUploadBtn_clicked();
     void on_listWidget_itemDoubleClicked(QListWidgetItem *item);
     void on_dbgFileSrvPingBtn_clicked();
-    void on_dbgSplitFileBtn_clicked();
     void on_dbgUploadChunkBtn_clicked();
     void on_dbgDownloadChunkBtn_clicked();
 
@@ -56,11 +56,14 @@ private slots:
     void on_dbgFileQueryBtn_clicked();
     void updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSize);
 
+    void on_dbgSrvStatRequestBtn_clicked();
+
 private:
     Ui::MainWindow *ui;
     FileDownloader *downloaderHandler;
     // Other dialog / windows
     UploadForm *uploadFormPtr;
+    DownloadForm *downloadFormPtr;
 };
 
 #endif // MAINWINDOW_H

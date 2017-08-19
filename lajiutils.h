@@ -4,6 +4,7 @@
 #include <QByteArray>
 #include <QHostAddress>
 #include <QString>
+#include <QTcpSocket>
 
 #define CHUNKSIZE_MB    64
 #define CHUNKSIZE_B     67108864
@@ -27,6 +28,8 @@ public:
     static QByteArray calcMD5(QString filepath);
     static QByteArray calcFf16b(QString filepath);
     static QString humanFileSize(qint64 size);
+    static bool getConnectFromList(QTcpSocket &socket,
+                                   std::vector<QAddressPort> &addrPortList, int number);
 };
 
 #endif // LAJIUTILS_H

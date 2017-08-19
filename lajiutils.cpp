@@ -76,3 +76,24 @@ QString LajiUtils::humanFileSize(qint64 size)
     }
     return QString().setNum(num,'f',2)+" "+unit;
 }
+
+bool LajiUtils::getConnectFromList(QTcpSocket &socket,
+                                   std::vector<QAddressPort> &addrPortList, int number)
+{
+    int addrListSize = addrPortList.size();
+    if (addrListSize == 0) return false;
+
+    number = number % addrListSize;
+    QAddressPort qap = addrPortList[number];
+
+    socket.close();
+    socket.connectToHost(qap.address, qap.port);
+
+    if (!socket.waitForConnected()) {
+        // improvement avaliable: try next addr if possible
+        qDebug() << "getConnectFromList(): " << socket.errorString();
+        return false;
+    }
+
+    return true;
+}

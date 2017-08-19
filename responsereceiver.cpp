@@ -62,3 +62,29 @@ ICucModel ResponseReceiver::recvICuc(QTcpSocket &socket)
         return result;
     }
 }
+
+std::map<int, QAddressPort> ResponseReceiver::recvICsr(QTcpSocket &socket)
+{
+    std::map<int, QAddressPort> result;
+    char recvHeader[5];
+    int32_t recvSize, addrCnt, srvIdx;
+    uint32_t addr, port;
+    socket.waitForReadyRead();
+    QDataStream in(&socket);
+
+    in.readRawData(recvHeader, 4);
+    recvHeader[4] = '\0';
+
+    in >> recvSize; // althought this is useless.
+    in >> addrCnt;
+
+    for (int i = 1; i <= addrCnt; i++) {
+        in >> srvIdx >> addr >> port;
+        QHostAddress qaddr(qFromBigEndian(addr));
+        QAddressPort addrport(qaddr, port);
+
+        result[srvIdx] = addrport;
+    }
+
+    return result;
+}

@@ -398,19 +398,15 @@
            </widget>
           </item>
           <item row="5" column="2">
-           <widget class="QPushButton" name="dbgSplitFileBtn">
+           <widget class="QPushButton" name="dbgSrvStatRequestBtn">
+            <property name="toolTip">
+             <string>CIsr</string>
+            </property>
+            <property name="statusTip">
+             <string>Server Status Request</string>
+            </property>
             <property name="text">
-             <string>Split File</string>
-            </property>
-           </widget>
-          </item>
-          <item row="5" column="0" colspan="2">
-           <widget class="QLineEdit" name="lineEdit">
-            <property name="readOnly">
-             <bool>false</bool>
-            </property>
-            <property name="placeholderText">
-             <string>Wait for load one of the splited file...</string>
+             <string>Stat Request</string>
             </property>
            </widget>
           </item>

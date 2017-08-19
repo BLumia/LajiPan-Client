@@ -26,6 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     uploadFormPtr = new UploadForm(0);
+    downloadFormPtr = new DownloadForm(0);
 
     updownSrvAddrPort = "127.0.0.1:8061";
     querySrvAddrPort = "127.0.0.1:8080";
@@ -48,12 +49,13 @@ MainWindow::~MainWindow()
     //delete nm;
     delete ui;
     delete uploadFormPtr;
+    delete downloadFormPtr;
 }
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event) {
     Q_UNUSED(event);
-//    uploadFormPtr->show();
-//    uploadFormPtr->update();
+//    downloadFormPtr->show();
+//    downloadFormPtr->update();
 //    qDebug() << "triggered";
 /*
     QCursor cur=this->cursor();
@@ -117,8 +119,7 @@ void MainWindow::on_dbgPingBtn_clicked()
         ui->logTextBrowser->append(socket.errorString());
         return;
     }
-    socket.write("PING", 4);
-    socket.waitForBytesWritten();
+    RequestSender::sendPING(socket);
     socket.waitForReadyRead();
     ui->logTextBrowser->append("Response: " + socket.readAll());
     socket.close();
@@ -340,17 +341,7 @@ void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
     int chunkPartID = 1;
     while(!file.atEnd()){
         QByteArray blob = file.read(CHUNKSIZE_B);
-        // TODO: split file and upload to avaliable FS.
-        // we just do simple upload for now.
-        socket.close();
-        socket.connectToHost(QHostAddress("127.0.0.1"), 7061); // FIXME: hard code addr!
-        if (!socket.waitForConnected()) {
-            //emit error(socket.error(), socket.errorString());
-            QMessageBox::information(nullptr, "Connection failed while uploading!",
-                                     "Refer to setting tab and update the informations.\nDetail: "
-                                     + socket.errorString());
-            return;
-        }
+        LajiUtils::getConnectFromList(socket, receivedData.addrPortList, chunkPartID);
         RequestSender::sendCFuc(socket, chunkPartID, md5hexStr, blob.size(), blob);
         socket.waitForReadyRead();
         uploadedSize += blob.size();
@@ -389,11 +380,9 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
         if (btnClicked == QMessageBox::Yes) {
             qDebug() << "Yes Yes Yes";
             qDebug() << chunkLocationArr;
-
-            for(int& oneAddr : chunkLocationArr) {
-                int chunkFSID = oneAddr / 1000;
-                int chunkID = oneAddr % 1000;
-            }
+            downloadFormPtr->show();
+            downloadFormPtr->update();
+            downloadFormPtr->doDownload(socket, chunkLocationArr);
 
         } else {
             qDebug() << "No No No";
@@ -421,22 +410,10 @@ void MainWindow::on_dbgFileSrvPingBtn_clicked()
         ui->logTextBrowser->append(socket.errorString());
         return;
     }
-    socket.write("PING", 4);
-    socket.waitForBytesWritten();
+    RequestSender::sendPING(socket);
     socket.waitForReadyRead();
     ui->logTextBrowser->append("Response: " + socket.readAll());
     socket.close();
-}
-
-void MainWindow::on_dbgSplitFileBtn_clicked()
-{
-    QString fileFullPath = ui->dbgFileNameEdit->statusTip();
-    if (fileFullPath.isEmpty()) {
-        QMessageBox::information(nullptr, "Info", "Please select a file by using the 'Load File' btn first.");
-        return;
-    }
-
-    // TODO: split file.
 }
 
 void MainWindow::on_dbgUploadChunkBtn_clicked()
@@ -523,6 +500,12 @@ void MainWindow::on_dbgFileQueryBtn_clicked()
     int port = ui->dbgSrvPortEdit->text().toInt();
     socket.connectToHost(addr, port);
 
+    if (!socket.waitForConnected()) {
+        QMessageBox::information(nullptr, "Connection failed!",
+                                 "Detail: " + socket.errorString());
+        return;
+    }
+
     RequestSender::sendCIfq(socket, ui->dbgFilePathEdit->text());
     std::vector<int> chunkLocationArr( ResponseReceiver::recvICdc(socket) );
 
@@ -537,4 +520,28 @@ void MainWindow::updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSi
     if (downloadedSize < 0) qDebug() << "updateDbgDownloadProgress(): ???";
     ui->dbgDlProgressBar->setMaximum(totalSize);
     ui->dbgDlProgressBar->setValue(downloadedSize);
+}
+
+void MainWindow::on_dbgSrvStatRequestBtn_clicked()
+{
+    if (ui->dbgSrvAddrEdit->text().isEmpty() ||
+            ui->dbgSrvPortEdit->text().isEmpty() ) {
+        QMessageBox::information(nullptr, "Info", "Both Srv IP and Port are required!");
+        return;
+    }
+
+    QTcpSocket socket;
+    QHostAddress addr(ui->dbgSrvAddrEdit->text());
+    int port = ui->dbgSrvPortEdit->text().toInt();
+    socket.connectToHost(addr, port);
+
+    if (!socket.waitForConnected()) {
+        QMessageBox::information(nullptr, "Connection failed!",
+                                 "Detail: " + socket.errorString());
+        return;
+    }
+
+    RequestSender::sendCIsr(socket);
+    std::map<int, QAddressPort> result = ResponseReceiver::recvICsr(socket);
+    qDebug() << result;
 }

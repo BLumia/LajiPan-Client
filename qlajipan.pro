@@ -32,7 +32,9 @@ SOURCES += \
     filelistwidget.cpp \
     lajiutils.cpp \
     icucmodel.cpp \
-    uploadform.cpp
+    uploadform.cpp \
+    downloadprogressitem.cpp \
+    downloadform.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -42,8 +44,12 @@ HEADERS += \
     filelistwidget.h \
     lajiutils.h \
     icucmodel.h \
-    uploadform.h
+    uploadform.h \
+    downloadprogressitem.h \
+    downloadform.h
 
 FORMS += \
         mainwindow.ui \
-    uploadform.ui
+    uploadform.ui \
+    downloadprogressitem.ui \
+    downloadform.ui

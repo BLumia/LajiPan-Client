@@ -70,3 +70,19 @@ bool RequestSender::sendCFuc(QTcpSocket &socket, int32_t chunkPartID, QString ha
 
     return true;
 }
+
+bool RequestSender::sendCIsr(QTcpSocket &socket)
+{
+    socket.write("CIsr", 4);
+    socket.waitForBytesWritten();
+
+    return true;
+}
+
+bool RequestSender::sendPING(QTcpSocket &socket)
+{
+    socket.write("PING", 4);
+    socket.waitForBytesWritten();
+
+    return true;
+}
