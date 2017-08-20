@@ -4,6 +4,8 @@
 #include "lajiutils.h"
 
 #include <QWidget>
+#include <set>
+#include <mutex>
 
 namespace Ui {
 class DownloadForm;
@@ -22,10 +24,13 @@ public:
 
 private slots:
     void on_closeBtn_clicked();
+    void checkDownloadDone(QString partName);
 
 private:
     Ui::DownloadForm *ui;
     std::map<int, QAddressPort> fileSrvMap;
+    std::set<QString> partNameSet;
+    std::mutex insertDataMutex;
 
     void clearDownloadList();
     void refreshFileSrvMap(QTcpSocket &socket);

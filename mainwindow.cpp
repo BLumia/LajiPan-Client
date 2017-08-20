@@ -50,6 +50,8 @@ MainWindow::~MainWindow()
     delete ui;
     delete uploadFormPtr;
     delete downloadFormPtr;
+
+    if (downloaderHandler != nullptr) delete downloaderHandler;
 }
 
 void MainWindow::contextMenuEvent(QContextMenuEvent *event) {
@@ -300,6 +302,9 @@ void MainWindow::partDownloaded()
     ui->logTextBrowser->append("Test download done.");
     QFileInfo fileinfo("Downloaded/debug.dl");
     QDesktopServices::openUrl( fileinfo.absolutePath() );
+
+    delete downloaderHandler;
+    downloaderHandler = nullptr;
 }
 
 void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)

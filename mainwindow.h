@@ -60,7 +60,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    FileDownloader *downloaderHandler;
+    FileDownloader *downloaderHandler = nullptr;
     // Other dialog / windows
     UploadForm *uploadFormPtr;
     DownloadForm *downloadFormPtr;

@@ -2,6 +2,7 @@
 #include "ui_downloadprogressitem.h"
 
 #include <QDebug>
+#include <QFile>
 
 DownloadProgressItem::DownloadProgressItem(QWidget *parent) :
     QWidget(parent),
@@ -13,6 +14,7 @@ DownloadProgressItem::DownloadProgressItem(QWidget *parent) :
 DownloadProgressItem::~DownloadProgressItem()
 {
     delete ui;
+    if (this->fileDownloaderPtr != nullptr) delete this->fileDownloaderPtr;
 }
 
 void DownloadProgressItem::initItem(int chunkID, QAddressPort fsAddr)
@@ -21,7 +23,6 @@ void DownloadProgressItem::initItem(int chunkID, QAddressPort fsAddr)
     ui->label->setText("#" + QString::number(chunkID) + "@" + fsAddr.address.toString()
                          + ":" + QString::number(fsAddr.port));
     ui->label_2->setText("Hanging up...");
-
 }
 
 void DownloadProgressItem::updateDownloadProgress(qint64 downloadedSize, qint64 totalSize)
@@ -30,6 +31,32 @@ void DownloadProgressItem::updateDownloadProgress(qint64 downloadedSize, qint64 
         qDebug() << "What?";
         return;
     }
+    ui->label_2->setText("Downloading: " + LajiUtils::humanFileSize(downloadedSize) +
+                         " / " + LajiUtils::humanFileSize(totalSize));
+
     ui->progressBar->setMaximum(totalSize);
     ui->progressBar->setValue(downloadedSize);
+}
+
+void DownloadProgressItem::downloadDone()
+{
+    ui->progressBar->setValue(100);
+    ui->progressBar->setMaximum(100);
+    ui->label_2->setText("Download done!");
+
+    QByteArray fileBinary(fileDownloaderPtr->downloadedData());
+    QString fileName = fileDownloaderPtr->fileName;
+    QFile file("Downloaded/" + fileName); // FIXME: download name.
+    file.open(QIODevice::WriteOnly);
+    file.write(fileBinary);
+    file.close();
+    qDebug() << "One chunk downloaded.";
+
+    delete fileDownloaderPtr;
+    fileDownloaderPtr = nullptr;
+
+    // emit a signal for dl form?
+    emit itemDownloadDone(fileName);
+
+    return;
 }

@@ -5,6 +5,7 @@ FileDownloader::FileDownloader(QUrl httpUrl, QObject *parent) :
 {
     QNetworkRequest request(httpUrl);
     reply = m_WebCtrl.get(request);
+    fileName = "debug.dl";
 
     connect(reply, SIGNAL(readyRead()),
             this, SLOT(httpReadyRead()));
@@ -26,7 +27,21 @@ void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
 
 void FileDownloader::httpReadyRead()
 {
-
+    QByteArray fileDisposition = this->reply->rawHeader(QByteArray("Content-Disposition"));
+    qDebug() << fileDisposition;
+    int quoteStart = -1, quoteEnd = -1;
+    for (int i = 0; i != fileDisposition.length (); i++) {
+        if (fileDisposition[i] == '"') {
+            if (quoteStart == -1) {
+                quoteStart = i + 1;
+            } else {
+                quoteEnd = i;
+                break;
+            }
+        }
+    }
+    fileName = QString(fileDisposition).mid(quoteStart, quoteEnd - quoteStart);
+    qDebug() << fileName;
 }
 
 QByteArray FileDownloader::downloadedData() const {

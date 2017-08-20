@@ -1,8 +1,10 @@
 #ifndef DOWNLOADPROGRESSITEM_H
 #define DOWNLOADPROGRESSITEM_H
 
+#include "filedownloader.h"
 #include "lajiutils.h"
 
+#include <QString>
 #include <QWidget>
 
 namespace Ui {
@@ -18,11 +20,17 @@ public:
     ~DownloadProgressItem();
     void initItem(int chunkID, QAddressPort fsAddr);
 
+    FileDownloader* fileDownloaderPtr = nullptr;
+
 public slots:
     void updateDownloadProgress(qint64 downloadedSize, qint64 totalSize);
+    void downloadDone();
 
 private:
     Ui::DownloadProgressItem *ui;
+
+signals:
+    void itemDownloadDone(QString);
 };
 
 #endif // DOWNLOADPROGRESSITEM_H
