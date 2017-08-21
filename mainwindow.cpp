@@ -387,7 +387,7 @@ void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
             qDebug() << chunkLocationArr;
             downloadFormPtr->show();
             downloadFormPtr->update();
-            downloadFormPtr->doDownload(socket, chunkLocationArr);
+            downloadFormPtr->doDownload(socket, fileName, chunkLocationArr);
 
         } else {
             qDebug() << "No No No";
@@ -448,6 +448,7 @@ void MainWindow::on_dbgUploadChunkBtn_clicked()
     }
     QByteArray blob = willUpload.readAll();
     qint64 fileSize = fileinfo.size();
+    willUpload.close();
 
     QTcpSocket socket;
     QHostAddress addr(ui->dbgFileSrvAddrEdit->text());

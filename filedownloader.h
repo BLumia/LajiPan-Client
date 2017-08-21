@@ -12,8 +12,8 @@ class FileDownloader : public QObject
     Q_OBJECT
 public:
     explicit FileDownloader(QUrl httpUrl, QObject *parent = 0);
-    virtual ~FileDownloader();
-    QByteArray downloadedData() const;
+    ~FileDownloader();
+    QByteArray downloadedData() /*const*/;
     QString fileName;
 
 signals:

@@ -1,4 +1,5 @@
 #include "filedownloader.h"
+#include <QApplication>
 
 FileDownloader::FileDownloader(QUrl httpUrl, QObject *parent) :
     QObject(parent)
@@ -8,27 +9,32 @@ FileDownloader::FileDownloader(QUrl httpUrl, QObject *parent) :
     fileName = "debug.dl";
 
     connect(reply, SIGNAL(readyRead()),
-            this, SLOT(httpReadyRead()));
+            this, SLOT(httpReadyRead()), Qt::UniqueConnection);
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
-            this, SLOT(emitDownloadProgress(qint64,qint64)));
+            this, SLOT(emitDownloadProgress(qint64,qint64)), Qt::UniqueConnection);
     connect(&m_WebCtrl, SIGNAL (finished(QNetworkReply*)),
-            this, SLOT (fileDownloaded(QNetworkReply*)) );
+            this, SLOT (fileDownloaded(QNetworkReply*)) , Qt::UniqueConnection);
 
 }
 
-FileDownloader::~FileDownloader() { }
+FileDownloader::~FileDownloader() {
+    //m_DownloadedData.resize(0); // try to fix malloc problem?
+}
 
 void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
     m_DownloadedData = pReply->readAll();
     //emit a signal
     pReply->deleteLater();
+    QApplication::processEvents();
     emit downloaded();
 }
 
 void FileDownloader::httpReadyRead()
 {
+    if (fileName.compare("debug.dl") != 0) return;
+
     QByteArray fileDisposition = this->reply->rawHeader(QByteArray("Content-Disposition"));
-    qDebug() << fileDisposition;
+    qDebug() << "httpReadyRead: " << fileDisposition;
     int quoteStart = -1, quoteEnd = -1;
     for (int i = 0; i != fileDisposition.length (); i++) {
         if (fileDisposition[i] == '"') {
@@ -44,7 +50,10 @@ void FileDownloader::httpReadyRead()
     qDebug() << fileName;
 }
 
-QByteArray FileDownloader::downloadedData() const {
+QByteArray FileDownloader::downloadedData() /*const*/ {
+//    QByteArray ret(m_DownloadedData);
+//    m_DownloadedData.clear();
+//    return ret;
     return m_DownloadedData;
 }
 

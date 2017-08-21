@@ -19,7 +19,7 @@ public:
     explicit DownloadForm(QWidget *parent = 0);
     ~DownloadForm();
 
-    bool doDownload(QTcpSocket &socket, std::vector<int> &chunkArr);
+    bool doDownload(QTcpSocket &socket, QString fileName, std::vector<int> &chunkArr);
     bool isDownloading = false;
 
 private slots:
@@ -31,6 +31,7 @@ private:
     std::map<int, QAddressPort> fileSrvMap;
     std::set<QString> partNameSet;
     std::mutex insertDataMutex;
+    QString fileName;
 
     void clearDownloadList();
     void refreshFileSrvMap(QTcpSocket &socket);

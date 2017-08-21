@@ -40,13 +40,12 @@ void DownloadProgressItem::updateDownloadProgress(qint64 downloadedSize, qint64 
 
 void DownloadProgressItem::downloadDone()
 {
-    ui->progressBar->setValue(100);
-    ui->progressBar->setMaximum(100);
+    ui->progressBar->setValue(ui->progressBar->maximum());
     ui->label_2->setText("Download done!");
 
     QByteArray fileBinary(fileDownloaderPtr->downloadedData());
     QString fileName = fileDownloaderPtr->fileName;
-    QFile file("Downloaded/" + fileName); // FIXME: download name.
+    QFile file("Cache/" + fileName); // FIXME: download name.
     file.open(QIODevice::WriteOnly);
     file.write(fileBinary);
     file.close();

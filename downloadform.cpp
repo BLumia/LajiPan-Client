@@ -4,11 +4,16 @@
 #include "responsereceiver.h"
 #include "ui_downloadform.h"
 
+#include <QFile>
+#include <QMessageBox>
+
 DownloadForm::DownloadForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DownloadForm)
 {
     ui->setupUi(this);
+
+    this->fileName = "unset";
 }
 
 DownloadForm::~DownloadForm()
@@ -16,10 +21,12 @@ DownloadForm::~DownloadForm()
     delete ui;
 }
 
-bool DownloadForm::doDownload(QTcpSocket &socket, std::vector<int> &chunkArr)
+bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<int> &chunkArr)
 {
     this->partNameSet.clear();
     this->refreshFileSrvMap(socket);
+    socket.close(); // no longer need this
+    this->fileName = fileName;
     ui->progressBar->setValue(0);
     for(int& oneAddr : chunkArr) {
         int chunkFSID = oneAddr / 1000;
@@ -70,6 +77,24 @@ void DownloadForm::checkDownloadDone(QString partName)
         //download done!
         ui->progressBar->setValue(95);
         qDebug() << "Download DONE!!! combining files...";
+        QFile file("Downloaded/" + this->fileName);
+        file.open(QIODevice::WriteOnly);
+        QDataStream out(&file);
+
+        int chunkCnt = ui->downloadItemList->count();
+        for(int i = 1; i <= chunkCnt; i++) {
+            QFile readChunkFile("Cache/" + QString::number(i) + ".dl");
+            if (!readChunkFile.open(QIODevice::ReadOnly)) {
+                QMessageBox::information(nullptr, "Info", "Error when processing file!");
+                return;
+            }
+            QByteArray blob = readChunkFile.readAll();
+            readChunkFile.close();
+            out.writeRawData(blob, blob.size());
+        }
+
+        file.close();
+        ui->progressBar->setValue(100);
     } else {
         float done = this->partNameSet.size();
         float total = ui->downloadItemList->count();
