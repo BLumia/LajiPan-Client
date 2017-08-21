@@ -99,7 +99,7 @@ void DownloadForm::checkDownloadDone(QString partName)
         float done = this->partNameSet.size();
         float total = ui->downloadItemList->count();
         int progressbarval = done / total * 90.0;
-        ui->progressBar->setValue(progressbarval);
+        //ui->progressBar->setValue(progressbarval);
     }
 }
 

@@ -20,10 +20,8 @@ signals:
     void downloaded();
     void downloadProgress(qint64, qint64);
 
-public slots:
-    void emitDownloadProgress(qint64 recvSize, qint64 totalSize);
-
 private slots:
+    void emitDownloadProgress(qint64 recvSize, qint64 totalSize);
     void fileDownloaded(QNetworkReply* pReply);
     void httpReadyRead();
 

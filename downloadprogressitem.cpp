@@ -45,7 +45,7 @@ void DownloadProgressItem::downloadDone()
 
     QByteArray fileBinary(fileDownloaderPtr->downloadedData());
     QString fileName = fileDownloaderPtr->fileName;
-    QFile file("Cache/" + fileName); // FIXME: download name.
+    QFile file("Cache/" + fileName);
     file.open(QIODevice::WriteOnly);
     file.write(fileBinary);
     file.close();
