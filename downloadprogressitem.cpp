@@ -28,7 +28,7 @@ void DownloadProgressItem::initItem(int chunkID, QAddressPort fsAddr)
 void DownloadProgressItem::updateDownloadProgress(qint64 downloadedSize, qint64 totalSize)
 {
     if (downloadedSize > totalSize) {
-        qDebug() << "What?";
+        qDebug() << "updateDownloadProgress: What?";
         return;
     }
     ui->label_2->setText("Downloading: " + LajiUtils::humanFileSize(downloadedSize) +
@@ -53,6 +53,8 @@ void DownloadProgressItem::downloadDone()
 
     delete fileDownloaderPtr;
     fileDownloaderPtr = nullptr;
+    fileBinary.resize(0);
+    QApplication::processEvents();
 
     // emit a signal for dl form?
     emit itemDownloadDone(fileName);

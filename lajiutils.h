@@ -3,6 +3,7 @@
 
 #include <QByteArray>
 #include <QHostAddress>
+#include <QIcon>
 #include <QString>
 #include <QTcpSocket>
 
@@ -30,6 +31,7 @@ public:
     static QString humanFileSize(qint64 size);
     static bool getConnectFromList(QTcpSocket &socket,
                                    std::vector<QAddressPort> &addrPortList, int number);
+    static QIcon getIconByFilename(const QString &fileName);
 };
 
 #endif // LAJIUTILS_H

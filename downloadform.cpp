@@ -6,12 +6,16 @@
 
 #include <QFile>
 #include <QMessageBox>
+#include <QDesktopServices>
+#include <QtConcurrent/QtConcurrent>
 
 DownloadForm::DownloadForm(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DownloadForm)
 {
     ui->setupUi(this);
+
+    this->setWindowFlags(Qt::Dialog | Qt::CustomizeWindowHint | Qt::WindowTitleHint);
 
     this->fileName = "unset";
 }
@@ -28,6 +32,9 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
     socket.close(); // no longer need this
     this->fileName = fileName;
     ui->progressBar->setValue(0);
+    int queueSize = 5;
+    FileDownloader* fdseats[5];
+    int seatUsed = 0;
     for(int& oneAddr : chunkArr) {
         int chunkFSID = oneAddr / 1000;
         int chunkID = oneAddr % 1000;
@@ -52,12 +59,24 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
         connect(dlItem, SIGNAL(itemDownloadDone(QString)),
                 this, SLOT(checkDownloadDone(QString)), Qt::UniqueConnection);
 
+        if (queueSize > 0) {
+            fdseats[seatUsed] = dlItem->fileDownloaderPtr;
+            queueSize--;
+            seatUsed++;
+        } else {
+            this->downloadQueue.push( dlItem->fileDownloaderPtr );
+        }
+
         QListWidgetItem* item = new QListWidgetItem();
         item->setSizeHint(QSize(0,50));
         ui->downloadItemList->addItem(item);
         ui->downloadItemList->setItemWidget(item, dlItem);
     }
     ui->progressBar->setValue(3);
+
+    for(int i = 0; i < seatUsed; i++) {
+        fdseats[i]->startDownload();
+    }
 
     return true;
 }
@@ -66,6 +85,7 @@ void DownloadForm::on_closeBtn_clicked()
 {
     this->clearDownloadList();
     isDownloading = false;
+    this->hide();
 }
 
 void DownloadForm::checkDownloadDone(QString partName)
@@ -98,8 +118,15 @@ void DownloadForm::checkDownloadDone(QString partName)
     } else {
         float done = this->partNameSet.size();
         float total = ui->downloadItemList->count();
+
+        if (this->downloadQueue.empty() == false) {
+            FileDownloader* ptr = this->downloadQueue.front();
+            ptr->startDownload();
+            downloadQueue.pop();
+        }
+
         int progressbarval = done / total * 90.0;
-        //ui->progressBar->setValue(progressbarval);
+        ui->progressBar->setValue(progressbarval);
     }
 }
 
@@ -117,4 +144,9 @@ void DownloadForm::refreshFileSrvMap(QTcpSocket &socket)
     RequestSender::sendCIsr(socket);
     this->fileSrvMap.clear();
     this->fileSrvMap = ResponseReceiver::recvICsr(socket);
+}
+
+void DownloadForm::on_pushButton_clicked()
+{
+    QDesktopServices::openUrl( QDir("./Downloaded/").absolutePath() );
 }

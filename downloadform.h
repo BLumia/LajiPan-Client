@@ -1,11 +1,13 @@
 #ifndef DOWNLOADFORM_H
 #define DOWNLOADFORM_H
 
+#include "filedownloader.h"
 #include "lajiutils.h"
 
 #include <QWidget>
 #include <set>
 #include <mutex>
+#include <queue>
 
 namespace Ui {
 class DownloadForm;
@@ -26,12 +28,15 @@ private slots:
     void on_closeBtn_clicked();
     void checkDownloadDone(QString partName);
 
+    void on_pushButton_clicked();
+
 private:
     Ui::DownloadForm *ui;
     std::map<int, QAddressPort> fileSrvMap;
     std::set<QString> partNameSet;
     std::mutex insertDataMutex;
     QString fileName;
+    std::queue<FileDownloader*> downloadQueue;
 
     void clearDownloadList();
     void refreshFileSrvMap(QTcpSocket &socket);

@@ -280,8 +280,9 @@ void MainWindow::requestReceived(QNetworkReply *reply)
         QJsonArray fileList = rootObj["filelist"].toArray();
         QFileIconProvider provider;
         foreach (const QJsonValue & value, fileList) {
-            QListWidgetItem* item = new QListWidgetItem(value.toString(), ui->listWidget);;
+            QListWidgetItem* item = new QListWidgetItem(value.toString(), ui->listWidget);
             item->setIcon(provider.icon(QFileIconProvider::File));
+            item->setIcon(LajiUtils::getIconByFilename(value.toString()));
             ui->listWidget->addItem(item);
         }
     } else {
@@ -330,7 +331,21 @@ void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
     RequestSender::sendCIhq(socket, filePath);
     ICucModel receivedData = ResponseReceiver::recvICuc(socket);
 
-    qDebug() << receivedData.addrPortList;
+    qDebug() << receivedData.status << receivedData.addrPortList;
+
+    if (receivedData.status.compare(QString("200")) == 0) {
+        // flash upload.
+        QMessageBox::information(nullptr, "Info", "Flash upload done! Will refresh the list for ya.");
+        this->refreshFileList();
+        return;
+    }
+
+    if (receivedData.status.compare(QString("403")) == 0) {
+        // flash upload.
+        QMessageBox::warning(nullptr, "Warning", "but we wont trigged this dialog at all.");
+        this->refreshFileList();
+        return;
+    }
 
     QFile file(filePath);
     qint64 uploadedSize = 0;

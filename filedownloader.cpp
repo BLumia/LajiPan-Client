@@ -4,28 +4,40 @@
 FileDownloader::FileDownloader(QUrl httpUrl, QObject *parent) :
     QObject(parent)
 {
-    QNetworkRequest request(httpUrl);
-    reply = m_WebCtrl.get(request);
     fileName = "debug.dl";
+    this->httpUrl = httpUrl;
 
-    connect(reply, SIGNAL(readyRead()),
-            this, SLOT(httpReadyRead()), Qt::UniqueConnection);
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
-            this, SLOT(emitDownloadProgress(qint64,qint64)), Qt::UniqueConnection);
     connect(&m_WebCtrl, SIGNAL (finished(QNetworkReply*)),
             this, SLOT (fileDownloaded(QNetworkReply*)) , Qt::UniqueConnection);
-
 }
 
 FileDownloader::~FileDownloader() {
     //m_DownloadedData.resize(0); // try to fix malloc problem?
 }
 
+void FileDownloader::startDownload()
+{
+    qDebug() << "Start downloading:" << httpUrl;
+    QNetworkRequest request(httpUrl);
+    reply = m_WebCtrl.get(request);
+
+    eventLoop = new QEventLoop;
+
+    connect(reply, SIGNAL(readyRead()),
+            this, SLOT(httpReadyRead()), Qt::UniqueConnection);
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
+            this, SLOT(emitDownloadProgress(qint64,qint64)), Qt::UniqueConnection);
+
+    //eventLoop->exec();
+}
+
 void FileDownloader::fileDownloaded(QNetworkReply* pReply) {
     m_DownloadedData = pReply->readAll();
     //emit a signal
     pReply->deleteLater();
+    //delete pReply; // fuck you!
     QApplication::processEvents();
+    this->eventLoop->quit();
     emit downloaded();
 }
 
@@ -34,7 +46,6 @@ void FileDownloader::httpReadyRead()
     if (fileName.compare("debug.dl") != 0) return;
 
     QByteArray fileDisposition = this->reply->rawHeader(QByteArray("Content-Disposition"));
-    qDebug() << "httpReadyRead: " << fileDisposition;
     int quoteStart = -1, quoteEnd = -1;
     for (int i = 0; i != fileDisposition.length (); i++) {
         if (fileDisposition[i] == '"') {
@@ -47,7 +58,7 @@ void FileDownloader::httpReadyRead()
         }
     }
     fileName = QString(fileDisposition).mid(quoteStart, quoteEnd - quoteStart);
-    qDebug() << fileName;
+    qDebug() << "httpReadyRead: " << fileName;
 }
 
 QByteArray FileDownloader::downloadedData() /*const*/ {

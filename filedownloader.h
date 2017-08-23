@@ -6,6 +6,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QEventLoop>
 
 class FileDownloader : public QObject
 {
@@ -13,6 +14,7 @@ class FileDownloader : public QObject
 public:
     explicit FileDownloader(QUrl httpUrl, QObject *parent = 0);
     ~FileDownloader();
+    void startDownload();
     QByteArray downloadedData() /*const*/;
     QString fileName;
 
@@ -29,6 +31,8 @@ private:
     QNetworkAccessManager m_WebCtrl;
     QNetworkReply *reply;
     QByteArray m_DownloadedData;
+    QUrl httpUrl;
+    QEventLoop* eventLoop;
 };
 
 #endif // FILEDOWNLOADER_H

@@ -2,6 +2,9 @@
 
 #include <QCryptographicHash>
 #include <QFileInfo>
+#include <QMimeDatabase>
+#include <QApplication>
+#include <QStyle>
 
 QAddressPort::QAddressPort()
 {
@@ -96,4 +99,22 @@ bool LajiUtils::getConnectFromList(QTcpSocket &socket,
     }
 
     return true;
+}
+
+QIcon LajiUtils::getIconByFilename(const QString &fileName)
+{
+    QMimeDatabase mime_database;
+
+    QIcon icon;
+    QList<QMimeType> mime_types = mime_database.mimeTypesForFileName(fileName);
+    for (int i=0; i < mime_types.count() && icon.isNull(); i++) {
+        icon = QIcon::fromTheme(mime_types[i].iconName());
+    }
+
+    if (icon.isNull()) {
+        return QApplication::style()->standardIcon(QStyle::SP_FileIcon);
+    } else {
+        return icon;
+    }
+
 }
