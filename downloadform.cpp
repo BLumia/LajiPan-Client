@@ -33,7 +33,7 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
     this->fileName = fileName;
     ui->progressBar->setValue(0);
     int queueSize = 5;
-    FileDownloader* fdseats[5];
+    FileTCPDownloader* fdseats[5];
     int seatUsed = 0;
     for(int& oneAddr : chunkArr) {
         int chunkFSID = oneAddr / 1000;
@@ -49,7 +49,7 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
         QUrl chunkUrl("http://" + addrport.address.toString() + ':' +
                           QString::number(addrport.port) + "/download/" +
                           QString::number(chunkID));
-        dlItem->fileDownloaderPtr = new FileDownloader(chunkUrl, dlItem);
+        dlItem->fileDownloaderPtr = new FileTCPDownloader(chunkUrl, dlItem);
 
         // conn
         connect(dlItem->fileDownloaderPtr, SIGNAL (downloaded()),
@@ -120,7 +120,7 @@ void DownloadForm::checkDownloadDone(QString partName)
         float total = ui->downloadItemList->count();
 
         if (this->downloadQueue.empty() == false) {
-            FileDownloader* ptr = this->downloadQueue.front();
+            FileTCPDownloader* ptr = this->downloadQueue.front();
             ptr->startDownload();
             downloadQueue.pop();
         }

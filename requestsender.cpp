@@ -79,6 +79,16 @@ bool RequestSender::sendCIsr(QTcpSocket &socket)
     return true;
 }
 
+bool RequestSender::sendCFdc(QTcpSocket &socket, int32_t chunkID)
+{
+    QDataStream out( &socket );
+    socket.write("CFdc", 4);
+    out << chunkID;
+    // wait?
+    socket.waitForBytesWritten();
+    return true;
+}
+
 bool RequestSender::sendPING(QTcpSocket &socket)
 {
     socket.write("PING", 4);

@@ -17,6 +17,7 @@ public:
     static bool sendCFuc(QTcpSocket &socket, int32_t chunkPartID, QString hashStr,
                          qint64 chunkSize, QByteArray blob);
     static bool sendCIsr(QTcpSocket &socket);
+    static bool sendCFdc(QTcpSocket &socket, int32_t chunkID);
     static bool sendPING(QTcpSocket &socket);
 };
 

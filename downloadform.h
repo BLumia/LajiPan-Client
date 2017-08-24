@@ -2,6 +2,7 @@
 #define DOWNLOADFORM_H
 
 #include "filedownloader.h"
+#include "filetcpdownloader.h"
 #include "lajiutils.h"
 
 #include <QWidget>
@@ -36,7 +37,7 @@ private:
     std::set<QString> partNameSet;
     std::mutex insertDataMutex;
     QString fileName;
-    std::queue<FileDownloader*> downloadQueue;
+    std::queue<FileTCPDownloader*> downloadQueue;
 
     void clearDownloadList();
     void refreshFileSrvMap(QTcpSocket &socket);

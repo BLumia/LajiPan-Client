@@ -2,6 +2,7 @@
 #define DOWNLOADPROGRESSITEM_H
 
 #include "filedownloader.h"
+#include "filetcpdownloader.h"
 #include "lajiutils.h"
 
 #include <QString>
@@ -20,7 +21,7 @@ public:
     ~DownloadProgressItem();
     void initItem(int chunkID, QAddressPort fsAddr);
 
-    FileDownloader* fileDownloaderPtr = nullptr;
+    FileTCPDownloader* fileDownloaderPtr = nullptr;
 
 public slots:
     void updateDownloadProgress(qint64 downloadedSize, qint64 totalSize);

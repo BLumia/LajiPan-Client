@@ -82,7 +82,7 @@ std::map<int, QAddressPort> ResponseReceiver::recvICsr(QTcpSocket &socket)
         in >> srvIdx >> addr >> port;
 
         // FIXME: port given is Updown Port, but we are using query port now.
-        port = port - 61 + 80;
+        //port = port - 61 + 80;
 
         QHostAddress qaddr(qFromBigEndian(addr));
         QAddressPort addrport(qaddr, port);
