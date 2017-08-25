@@ -10,6 +10,7 @@
 #include <QListWidgetItem>
 #include <QNetworkAccessManager>
 #include <QHostAddress>
+#include <QFutureWatcher>
 
 namespace Ui {
 class MainWindow;
@@ -55,12 +56,14 @@ private slots:
     void on_listWidget_dropEventTriggered(QList<QUrl> urls);
     void on_dbgFileQueryBtn_clicked();
     void updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSize);
-
+    void doUploadFile();
     void on_dbgSrvStatRequestBtn_clicked();
 
 private:
     Ui::MainWindow *ui;
     FileDownloader *downloaderHandler = nullptr;
+    QFutureWatcher<QByteArray> *md5resultWatcher;
+    QString m_tobeUploadedFilePath;
     // Other dialog / windows
     UploadForm *uploadFormPtr;
     DownloadForm *downloadFormPtr;

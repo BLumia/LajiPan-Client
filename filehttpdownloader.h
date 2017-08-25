@@ -30,7 +30,7 @@ private:
     QNetworkReply *reply;
     QByteArray m_DownloadedData;
     QUrl httpUrl;
-    QEventLoop* eventLoop;
+    //QEventLoop* eventLoop;
     QString fileName;
 };
 

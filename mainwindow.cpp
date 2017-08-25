@@ -10,15 +10,16 @@
 #include <QFileDialog>
 #include <QNetworkRequest>
 #include <QNetworkReply>
-#include <QScriptEngine>
 #include <QEventLoop>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QFileIconProvider>
 #include <QDesktopServices>
+#include <QtConcurrent/QtConcurrent>
 #include <QMenu>
 #include <vector>
+#include <QFuture>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +29,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     uploadFormPtr = new UploadForm(0);
     downloadFormPtr = new DownloadForm(0);
+
+    md5resultWatcher = new QFutureWatcher<QByteArray>();
 
     updownSrvAddrPort = "127.0.0.1:8061";
     querySrvAddrPort = "127.0.0.1:8080";
@@ -41,6 +44,8 @@ MainWindow::MainWindow(QWidget *parent) :
     if (!QDir("Cache").exists()) QDir().mkdir("Cache");
     if (!QDir("Downloaded").exists()) QDir().mkdir("Downloaded");
 
+    connect(md5resultWatcher, SIGNAL(finished()),
+            this, SLOT(doUploadFile()), Qt::UniqueConnection);
     connect(ui->listWidget,SIGNAL(dropEventTriggered(QList<QUrl>)),
             this,SLOT(on_listWidget_dropEventTriggered(QList<QUrl>)), Qt::UniqueConnection);
 }
@@ -51,6 +56,7 @@ MainWindow::~MainWindow()
     delete ui;
     delete uploadFormPtr;
     delete downloadFormPtr;
+    delete md5resultWatcher;
 
     if (downloaderHandler != nullptr) delete downloaderHandler;
 }
@@ -312,75 +318,16 @@ void MainWindow::partDownloaded()
 
 void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
 {
-    QTcpSocket socket;
     QString filePath = urls.first().toLocalFile();
-
-    socket.connectToHost(updownSrvAddr, updownSrvPort);
-    if (!socket.waitForConnected()) {
-        //emit error(socket.error(), socket.errorString());
-        QMessageBox::information(nullptr, "Connection failed!",
-                                 "Refer to setting tab and update the informations.\nDetail: "
-                                 + socket.errorString());
-        return;
-    }
 
     qDebug() << filePath;
     //qDebug() << urls;
+    m_tobeUploadedFilePath = filePath;
 
-    QByteArray md5bin = LajiUtils::calcMD5(filePath);
-    QString md5hexStr = md5bin.toHex();
+    QFuture<QByteArray> future = QtConcurrent::run(LajiUtils::calcMD5, filePath);
+    md5resultWatcher->setFuture(future);
 
-    RequestSender::sendCIhq(socket, filePath);
-    ICucModel receivedData = ResponseReceiver::recvICuc(socket);
-
-    qDebug() << receivedData.status << receivedData.addrPortList;
-
-    if (receivedData.status.compare(QString("200")) == 0) {
-        // flash upload.
-        QMessageBox::information(nullptr, "Info", "Flash upload done! Will refresh the list for ya.");
-        this->refreshFileList();
-        return;
-    }
-
-    if (receivedData.status.compare(QString("403")) == 0) {
-        // flash upload.
-        QMessageBox::warning(nullptr, "Warning", "but we wont trigged this dialog at all.");
-        this->refreshFileList();
-        return;
-    }
-
-    QFile file(filePath);
-    qint64 uploadedSize = 0;
-    file.open(QFile::ReadOnly);
-
-    // Do upload:
-    uploadFormPtr->updateUIText(filePath);
-    uploadFormPtr->updateUploadedSize(0);
-    uploadFormPtr->show();
-    uploadFormPtr->update();
-    QApplication::processEvents();
-
-    int chunkPartID = 1;
-    while(!file.atEnd()){
-        QByteArray blob = file.read(CHUNKSIZE_B);
-        LajiUtils::getConnectFromList(socket, receivedData.addrPortList, chunkPartID);
-        RequestSender::sendCFuc(socket, chunkPartID, md5hexStr, blob.size(), blob);
-        socket.waitForReadyRead();
-        uploadedSize += blob.size();
-        uploadFormPtr->updateUploadedSize(uploadedSize);
-        uploadFormPtr->updateUploadedSize(0);
-        ui->logTextBrowser->append("Drop file upload: Chunk #" + QString::number(chunkPartID)
-                                   + " Status: " +  socket.readAll());
-        chunkPartID++;
-        QApplication::processEvents(); // FIXME: lazy work!
-    }
-
-    uploadFormPtr->uploadDone();
-
-    // Done.
-    QMessageBox::information(nullptr, "Info", "Upload done! Will refresh the list for ya.");
-    this->refreshFileList();
-
+    ui->statusBar->showMessage(tr("Calculating MD5..."));
 }
 
 void MainWindow::on_listWidget_itemDoubleClicked(QListWidgetItem *item)
@@ -569,4 +516,77 @@ void MainWindow::on_dbgSrvStatRequestBtn_clicked()
     RequestSender::sendCIsr(socket);
     std::map<int, QAddressPort> result = ResponseReceiver::recvICsr(socket);
     qDebug() << result;
+}
+
+// trigged after MD5 sum get result.
+void MainWindow::doUploadFile()
+{
+    ui->statusBar->showMessage(tr("Uploading..."));
+
+    QTcpSocket socket;
+    QString filePath = m_tobeUploadedFilePath;
+
+    socket.connectToHost(updownSrvAddr, updownSrvPort);
+    if (!socket.waitForConnected()) {
+        //emit error(socket.error(), socket.errorString());
+        QMessageBox::information(nullptr, "Connection failed!",
+                                 "Refer to setting tab and update the informations.\nDetail: "
+                                 + socket.errorString());
+        return;
+    }
+
+    QByteArray md5bin = md5resultWatcher->result();
+    QString md5hexStr = md5bin.toHex();
+
+    RequestSender::sendCIhq(socket, filePath);
+    ICucModel receivedData = ResponseReceiver::recvICuc(socket);
+
+    qDebug() << receivedData.status << receivedData.addrPortList << md5hexStr;
+
+    if (receivedData.status.compare(QString("200")) == 0) {
+        // flash upload.
+        QMessageBox::information(nullptr, "Info", "Flash upload done! Will refresh the list for ya.");
+        this->refreshFileList();
+        return;
+    }
+
+    if (receivedData.status.compare(QString("403")) == 0) {
+        // flash upload.
+        QMessageBox::warning(nullptr, "Warning", "but we wont trigged this dialog at all.");
+        this->refreshFileList();
+        return;
+    }
+
+    QFile file(filePath);
+    qint64 uploadedSize = 0;
+    file.open(QFile::ReadOnly);
+
+    // Do upload:
+    uploadFormPtr->updateUIText(filePath);
+    uploadFormPtr->updateUploadedSize(0);
+    uploadFormPtr->show();
+    uploadFormPtr->update();
+    QApplication::processEvents();
+
+    int chunkPartID = 1;
+    while(!file.atEnd()){
+        QByteArray blob = file.read(CHUNKSIZE_B);
+        LajiUtils::getConnectFromList(socket, receivedData.addrPortList, chunkPartID);
+        RequestSender::sendCFuc(socket, chunkPartID, md5hexStr, blob.size(), blob);
+        socket.waitForReadyRead();
+        uploadedSize += blob.size();
+        uploadFormPtr->updateUploadedSize(uploadedSize);
+        uploadFormPtr->updateUploadedSize(0);
+        ui->logTextBrowser->append("Drop file upload: Chunk #" + QString::number(chunkPartID)
+                                   + " Status: " +  socket.readAll());
+        chunkPartID++;
+        QApplication::processEvents(); // FIXME: lazy work!
+    }
+
+    uploadFormPtr->uploadDone();
+
+    // Done.
+    QMessageBox::information(nullptr, "Info", "Upload done! Will refresh the list for ya.");
+    this->refreshFileList();
+    ui->statusBar->showMessage(tr("Upload Done!"), 2000);
 }
