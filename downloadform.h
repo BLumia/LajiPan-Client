@@ -37,7 +37,7 @@ private:
     std::set<QString> partNameSet;
     std::mutex insertDataMutex;
     QString fileName;
-    std::queue<FileTCPDownloader*> downloadQueue;
+    std::queue<FileDownloader*> downloadQueue;
 
     void clearDownloadList();
     void refreshFileSrvMap(QTcpSocket &socket);

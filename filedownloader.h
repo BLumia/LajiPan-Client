@@ -3,36 +3,25 @@
 
 #include <QObject>
 #include <QByteArray>
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
-#include <QEventLoop>
+#include <QUrl>
 
 class FileDownloader : public QObject
 {
     Q_OBJECT
 public:
-    explicit FileDownloader(QUrl httpUrl, QObject *parent = 0);
-    ~FileDownloader();
-    void startDownload();
-    QByteArray downloadedData() /*const*/;
-    QString fileName;
+    explicit FileDownloader(QUrl httpUrl, QObject *parent = 0) : QObject(parent) {
+        Q_UNUSED(httpUrl);
+    }
+    ~FileDownloader() {}
+
+    virtual void startDownload() = 0;
+    virtual QByteArray downloadedData() = 0;
+    virtual QString getFileName() = 0;
 
 signals:
     void downloaded();
     void downloadProgress(qint64, qint64);
 
-private slots:
-    void emitDownloadProgress(qint64 recvSize, qint64 totalSize);
-    void fileDownloaded(QNetworkReply* pReply);
-    void httpReadyRead();
-
-private:
-    QNetworkAccessManager m_WebCtrl;
-    QNetworkReply *reply;
-    QByteArray m_DownloadedData;
-    QUrl httpUrl;
-    QEventLoop* eventLoop;
 };
 
 #endif // FILEDOWNLOADER_H

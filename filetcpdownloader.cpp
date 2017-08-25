@@ -2,8 +2,7 @@
 #include "requestsender.h"
 
 FileTCPDownloader::FileTCPDownloader(QUrl httpUrl, QObject *parent) :
-    QObject(parent),
-    tcpSocket(new QTcpSocket(this))
+    FileDownloader(httpUrl, parent)
 {
     // for some reason we still choose to write a adapter for http
     fileName = "debug.dl";
@@ -14,17 +13,17 @@ FileTCPDownloader::FileTCPDownloader(QUrl httpUrl, QObject *parent) :
 
     this->chunkID = path.toInt();
 
+    tcpSocket = new QTcpSocket(this);
     // socket signal and slots
-    connect(tcpSocket, SIGNAL(connected()), this, SLOT(sendDownloadRequest()));
-    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()));
+    connect(tcpSocket, SIGNAL(connected()), this, SLOT(sendDownloadRequest()), Qt::UniqueConnection);
+    connect(tcpSocket, SIGNAL(readyRead()), this, SLOT(socketReadyRead()), Qt::UniqueConnection);
 }
 
 FileTCPDownloader::~FileTCPDownloader()
 {
-    if (tcpSocket != nullptr) {
-        tcpSocket->abort();
-        delete tcpSocket;
-    }
+    tcpSocket->abort();
+    tcpSocket->disconnect();
+    delete tcpSocket;
 }
 
 void FileTCPDownloader::startDownload()
@@ -39,6 +38,11 @@ void FileTCPDownloader::startDownload()
 QByteArray FileTCPDownloader::downloadedData()
 {
     return m_DownloadedData;
+}
+
+QString FileTCPDownloader::getFileName()
+{
+    return fileName;
 }
 
 void FileTCPDownloader::socketReadyRead()
@@ -72,7 +76,6 @@ void FileTCPDownloader::socketReadyRead()
 
     this->m_DownloadedData = tcpSocket->readAll();
     tcpSocket->close();
-    //tcpSocket = nullptr;
     emit downloaded();
     return;
 }

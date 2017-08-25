@@ -1,6 +1,7 @@
 #ifndef FILETCPDOWNLOADER_H
 #define FILETCPDOWNLOADER_H
 
+#include "filedownloader.h"
 #include "lajiutils.h"
 
 #include <QObject>
@@ -8,7 +9,7 @@
 #include <QTcpSocket>
 #include <QUrl>
 
-class FileTCPDownloader : public QObject
+class FileTCPDownloader : public FileDownloader
 {
     Q_OBJECT
 public:
@@ -16,7 +17,7 @@ public:
     ~FileTCPDownloader();
     void startDownload();
     QByteArray downloadedData() /*const*/;
-    QString fileName;
+    QString getFileName();
 
 signals:
     void downloaded();
@@ -31,6 +32,7 @@ private:
     QByteArray m_DownloadedData;
     qint64 totalBytes = -1;
     int32_t chunkID;
+    QString fileName;
 
 private slots:
     void socketReadyRead();

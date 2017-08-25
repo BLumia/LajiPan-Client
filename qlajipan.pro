@@ -35,7 +35,8 @@ SOURCES += \
     uploadform.cpp \
     downloadprogressitem.cpp \
     downloadform.cpp \
-    filetcpdownloader.cpp
+    filetcpdownloader.cpp \
+    filehttpdownloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -48,7 +49,8 @@ HEADERS += \
     uploadform.h \
     downloadprogressitem.h \
     downloadform.h \
-    filetcpdownloader.h
+    filetcpdownloader.h \
+    filehttpdownloader.h
 
 FORMS += \
         mainwindow.ui \

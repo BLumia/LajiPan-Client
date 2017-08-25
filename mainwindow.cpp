@@ -3,6 +3,7 @@
 #include "responsereceiver.h"
 #include "lajiutils.h"
 #include "ui_mainwindow.h"
+#include "filehttpdownloader.h"
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QMessageBox>
@@ -304,6 +305,7 @@ void MainWindow::partDownloaded()
     QFileInfo fileinfo("Downloaded/debug.dl");
     QDesktopServices::openUrl( fileinfo.absolutePath() );
 
+    downloaderHandler->disconnect();
     delete downloaderHandler;
     downloaderHandler = nullptr;
 }
@@ -500,11 +502,13 @@ void MainWindow::on_dbgDownloadChunkBtn_clicked()
     QUrl chunkUrl("http://" + ui->dbgFileSrvAddrEdit->text() + ':' +
                   ui->dbgFileSrvQueryPortEdit->text() + "/download/" +
                   ui->dbgChunkIDEdit->text());
-    downloaderHandler = new FileDownloader(chunkUrl, this);
+    downloaderHandler = new FileHTTPDownloader(chunkUrl, this);
 
-    connect(downloaderHandler, SIGNAL (downloaded()), this, SLOT (partDownloaded()));
+    connect(downloaderHandler, SIGNAL (downloaded()), this, SLOT (partDownloaded()), Qt::UniqueConnection);
     connect(downloaderHandler, SIGNAL (downloadProgress(qint64, qint64)),
-            this, SLOT (updateDbgDownloadProgress(qint64, qint64)));
+            this, SLOT (updateDbgDownloadProgress(qint64, qint64)), Qt::UniqueConnection);
+
+    downloaderHandler->startDownload();
 }
 
 void MainWindow::on_dbgFileQueryBtn_clicked()

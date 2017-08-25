@@ -21,7 +21,7 @@ public:
     ~DownloadProgressItem();
     void initItem(int chunkID, QAddressPort fsAddr);
 
-    FileTCPDownloader* fileDownloaderPtr = nullptr;
+    FileDownloader* fileDownloaderPtr = nullptr;
 
 public slots:
     void updateDownloadProgress(qint64 downloadedSize, qint64 totalSize);

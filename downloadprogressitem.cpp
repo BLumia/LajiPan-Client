@@ -14,7 +14,7 @@ DownloadProgressItem::DownloadProgressItem(QWidget *parent) :
 DownloadProgressItem::~DownloadProgressItem()
 {
     delete ui;
-    if (this->fileDownloaderPtr != nullptr) delete this->fileDownloaderPtr;
+    delete fileDownloaderPtr;
 }
 
 void DownloadProgressItem::initItem(int chunkID, QAddressPort fsAddr)
@@ -44,7 +44,7 @@ void DownloadProgressItem::downloadDone()
     ui->label_2->setText("Download done!");
 
     QByteArray fileBinary(fileDownloaderPtr->downloadedData());
-    QString fileName = fileDownloaderPtr->fileName;
+    QString fileName = fileDownloaderPtr->getFileName();
     QFile file("Cache/" + fileName);
     file.open(QIODevice::WriteOnly);
     file.write(fileBinary);
@@ -54,7 +54,7 @@ void DownloadProgressItem::downloadDone()
     delete fileDownloaderPtr;
     fileDownloaderPtr = nullptr;
     fileBinary.resize(0);
-    QApplication::processEvents();
+    //QApplication::processEvents();
 
     // emit a signal for dl form?
     emit itemDownloadDone(fileName);
