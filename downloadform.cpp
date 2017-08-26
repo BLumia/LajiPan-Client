@@ -32,8 +32,8 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
     socket.close(); // no longer need this
     this->fileName = fileName;
     ui->progressBar->setValue(0);
-    int queueSize = 5;
-    FileDownloader* fdseats[5];
+    int queueSize = 3;
+    FileDownloader* fdseats[3];
     int seatUsed = 0;
     for(int& oneAddr : chunkArr) {
         int chunkFSID = oneAddr / 1000;
@@ -72,7 +72,7 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
         ui->downloadItemList->addItem(item);
         ui->downloadItemList->setItemWidget(item, dlItem);
     }
-    ui->progressBar->setValue(3);
+    ui->progressBar->setValue(5);
 
     for(int i = 0; i < seatUsed; i++) {
         fdseats[i]->startDownload();

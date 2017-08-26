@@ -4,6 +4,7 @@
 #include "filedownloader.h"
 #include "uploadform.h"
 #include "downloadform.h"
+#include "fileuploader.h"
 
 #include <QMainWindow>
 #include <QUrl>
@@ -11,6 +12,7 @@
 #include <QNetworkAccessManager>
 #include <QHostAddress>
 #include <QFutureWatcher>
+#include <QProgressBar>
 
 namespace Ui {
 class MainWindow;
@@ -58,6 +60,8 @@ private slots:
     void updateDbgDownloadProgress(qint64 downloadedSize, qint64 totalSize);
     void doUploadFile();
     void on_dbgSrvStatRequestBtn_clicked();
+    void onUpdateUploadProgress(qint64 uploadedSize, qint64 totalSize);
+    void onUploadDone();
 
 private:
     Ui::MainWindow *ui;
@@ -67,6 +71,8 @@ private:
     // Other dialog / windows
     UploadForm *uploadFormPtr;
     DownloadForm *downloadFormPtr;
+    FileUploader *fileUploader;
+    QProgressBar* statusProgressBar;
 };
 
 #endif // MAINWINDOW_H

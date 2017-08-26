@@ -25,6 +25,7 @@ bool RequestSender::sendCIfq(QTcpSocket &socket, QString fileName)
     return true;
 }
 
+// Warning: calc md5 is such f-ing slow!
 bool RequestSender::sendCIhq(QTcpSocket &socket, QString filepath)
 {
     QFileInfo fileinfo(filepath);
