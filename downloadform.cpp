@@ -2,6 +2,7 @@
 #include "downloadprogressitem.h"
 #include "requestsender.h"
 #include "responsereceiver.h"
+#include "filetcpblockingdownloader.h"
 #include "ui_downloadform.h"
 
 #include <QFile>
@@ -49,7 +50,7 @@ bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<
         QUrl chunkUrl("http://" + addrport.address.toString() + ':' +
                           QString::number(addrport.port) + "/download/" +
                           QString::number(chunkID));
-        dlItem->fileDownloaderPtr = new FileTCPDownloader(chunkUrl, dlItem);
+        dlItem->fileDownloaderPtr = new FileTcpBlockingDownloader(chunkUrl, dlItem);
 
         // conn
         connect(dlItem->fileDownloaderPtr, SIGNAL (downloaded()),

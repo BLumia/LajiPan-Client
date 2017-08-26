@@ -37,7 +37,9 @@ SOURCES += \
     downloadform.cpp \
     filetcpdownloader.cpp \
     filehttpdownloader.cpp \
-    fileuploader.cpp
+    fileuploader.cpp \
+    filetcpblockingdownloader.cpp \
+    blockingdownloader.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -52,7 +54,9 @@ HEADERS += \
     downloadform.h \
     filetcpdownloader.h \
     filehttpdownloader.h \
-    fileuploader.h
+    fileuploader.h \
+    filetcpblockingdownloader.h \
+    blockingdownloader.h
 
 FORMS += \
         mainwindow.ui \
