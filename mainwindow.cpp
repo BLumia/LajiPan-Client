@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->statusBar->addPermanentWidget(statusProgressBar);
     statusProgressBar->hide();
 
+    m_tobeUploadedFilePath = "*";
+
     updownSrvAddrPort = "127.0.0.1:8061";
     querySrvAddrPort = "127.0.0.1:8080";
     querySrvAddr.setAddress("127.0.0.1");
@@ -296,6 +298,7 @@ void MainWindow::requestReceived(QNetworkReply *reply)
             QListWidgetItem* item = new QListWidgetItem(value.toString(), ui->listWidget);
             item->setIcon(provider.icon(QFileIconProvider::File));
             item->setIcon(LajiUtils::getIconByFilename(value.toString()));
+            item->setStatusTip(value.toString()); //????
             ui->listWidget->addItem(item);
         }
     } else {
@@ -324,7 +327,11 @@ void MainWindow::partDownloaded()
 
 void MainWindow::on_listWidget_dropEventTriggered(QList<QUrl> urls)
 {
-    // TODO: warn user if already uploading file.
+    // Warn user if already uploading file.
+    if (m_tobeUploadedFilePath.at(0) != '*') {
+        QMessageBox::information(nullptr, "Warning", "Already uploading a file.");
+        return;
+    }
     // set m_tobeUploadedFileName to "*" (filename can't contain '*') means not uploading.
     QString filePath = urls.first().toLocalFile();
 
@@ -549,6 +556,8 @@ void MainWindow::onUploadDone()
     fileUploader->exit();
     fileUploader->disconnect();
     fileUploader->deleteLater(); // ??
+
+    m_tobeUploadedFilePath = "*";
 }
 
 // trigged after MD5 sum get result.
@@ -566,6 +575,7 @@ void MainWindow::doUploadFile()
         QMessageBox::information(nullptr, "Connection failed!",
                                  "Refer to setting tab and update the informations.\nDetail: "
                                  + socket.errorString());
+        m_tobeUploadedFilePath = "*";
         return;
     }
 
@@ -588,6 +598,7 @@ void MainWindow::doUploadFile()
         statusProgressBar->hide();
         QMessageBox::information(nullptr, "Info", "Flash upload done! Will refresh the list for ya.");
         this->refreshFileList();
+        m_tobeUploadedFilePath = "*";
         return;
     }
 
@@ -597,6 +608,7 @@ void MainWindow::doUploadFile()
         statusProgressBar->hide();
         QMessageBox::warning(nullptr, "Warning", "but we wont trigged this dialog at all.");
         this->refreshFileList();
+        m_tobeUploadedFilePath = "*";
         return;
     }
 
