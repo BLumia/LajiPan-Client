@@ -28,6 +28,7 @@ DownloadForm::~DownloadForm()
 
 bool DownloadForm::doDownload(QTcpSocket &socket, QString fileName, std::vector<int> &chunkArr)
 {
+    ui->closeBtn->setEnabled(false);
     this->partNameSet.clear();
     this->refreshFileSrvMap(socket);
     socket.close(); // no longer need this
@@ -116,6 +117,7 @@ void DownloadForm::checkDownloadDone(QString partName)
 
         file.close();
         ui->progressBar->setValue(100);
+        ui->closeBtn->setEnabled(true);
     } else {
         float done = this->partNameSet.size();
         float total = ui->downloadItemList->count();
